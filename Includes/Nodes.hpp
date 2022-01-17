@@ -56,7 +56,10 @@ public:
 
 class Condition : public Node {
 public:
+    Value* left;
+    Value* right;
     virtual InstructionList* generateCondtion(size_t jumpOutOffset) = 0;
+    static InstructionList* subtractToRegister(Value* left, Value* right);
 };
 
 class Command : public Node {
