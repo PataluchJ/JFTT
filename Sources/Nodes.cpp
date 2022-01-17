@@ -4,10 +4,10 @@ InstructionList* Condition::subtractToRegister(Value* left, Value* right)
 {
 	InstructionList* inst = new InstructionList;
 	auto genLeftValue = left->valueToRegister(Register::a);
-	auto genRightValue = left->valueToRegister(Register::c);
+	auto genRightValue = left->valueToRegister(Register::d);
 	inst->splice(inst->end(), *genRightValue);
 	inst->splice(inst->end(), *genLeftValue);
-	inst->push_back(new Instruction(OptCode::SUB, Register::c));
+	inst->push_back(new Instruction(OptCode::SUB, Register::d));
 
 	delete genLeftValue;
 	delete genRightValue;

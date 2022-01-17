@@ -14,14 +14,17 @@ Assign::~Assign()
 
 InstructionList* Assign::generate()
 {
-	auto address = this->var->addressToRegister(Register::c);
+	Logger::log("Assign: {");
+	Logger::indent += 1;
+	auto address = this->var->addressToRegister(Register::g);
 	auto val = this->exp->calculateToRegister(Register::a);
 
 	auto inst = new InstructionList;
 	inst->splice(inst->end(), *address);
 	inst->splice(inst->end(), *val);
-	inst->push_back(new Instruction(OptCode::STORE, Register::c));
-
+	inst->push_back(new Instruction(OptCode::STORE, Register::g));
+	Logger::indent -= 1;
+	Logger::log("}Assign");
 	delete address;
 	delete val; 
 	return inst;
@@ -42,12 +45,17 @@ If::~If()
 InstructionList* If::generate()
 {
 	auto inst = new InstructionList;
-
+	Logger::log("If: {");
+	Logger::indent += 1;
 	auto inBlock = commands->generate();
-	auto condBlock = cond->generateCondtion(inBlock->size()+1);
+	auto condBlock = cond->generateCondtion(inBlock->size());
 
 	inst->splice(inst->end(), *condBlock);
 	inst->splice(inst->end(), *inBlock);
+
+	Logger::indent -= 1;
+	Logger::log("}If");
+	
 
 	delete inBlock;
 	delete condBlock;
@@ -73,8 +81,8 @@ InstructionList* If_Else::generate()
 {
 	auto elseBlockInst = elseBlock->generate();
 	auto ifBlockInst = ifBlock->generate();
-	ifBlockInst->push_back(new Instruction(OptCode::JUMP, elseBlockInst->size()+1));
-	auto condBlockInst = cond->generateCondtion(ifBlockInst->size() + 1);
+	ifBlockInst->push_back(new Instruction(OptCode::JUMP, elseBlockInst->size()));
+	auto condBlockInst = cond->generateCondtion(ifBlockInst->size());
 
 	auto inst = new InstructionList;
 	inst->splice(inst->end(), *condBlockInst);
@@ -105,7 +113,7 @@ InstructionList* While::generate()
 	auto inst = new InstructionList;
 
 	auto blockInst = block->generate();
-	auto condInst = cond->generateCondtion(blockInst->size() + 1);
+	auto condInst = cond->generateCondtion(blockInst->size());
 
 	inst->splice(inst->end(), *condInst);
 	inst->splice(inst->end(), *blockInst);
@@ -151,9 +159,9 @@ InstructionList* Repeat::generate()
 	auto inst = new InstructionList;
 
 	auto blockInst = block->generate();
-	auto condInst = cond->generateCondtion(blockInst->size() + 1);
+	auto condInst = cond->generateCondtion(blockInst->size());
 
-	inst->push_back(new Instruction(OptCode::JUMP, condInst->size()+1));
+	inst->push_back(new Instruction(OptCode::JUMP, condInst->size()));
 	inst->splice(inst->end(), *condInst);
 	inst->splice(inst->end(), *blockInst);
 

@@ -14,8 +14,8 @@
     const OptCode* OptCode::DEC    = new OptCode("DEC", OptCode::OptCodeType::Dec, OptCode::ArgumentType::Reg);
     const OptCode* OptCode::JUMP   = new OptCode("JUMP", OptCode::OptCodeType::Jump, OptCode::ArgumentType::ConstValue);
     const OptCode* OptCode::JPOS   = new OptCode("JPOS", OptCode::OptCodeType::Jpos, OptCode::ArgumentType::ConstValue);
-    const OptCode* OptCode::JZERO  = new OptCode("JNEG", OptCode::OptCodeType::Jzero, OptCode::ArgumentType::ConstValue);
-    const OptCode* OptCode::JNEG   = new OptCode("LOAD", OptCode::OptCodeType::Jneg, OptCode::ArgumentType::ConstValue);
+    const OptCode* OptCode::JZERO  = new OptCode("JZERO", OptCode::OptCodeType::Jzero, OptCode::ArgumentType::ConstValue);
+    const OptCode* OptCode::JNEG   = new OptCode("JNEG", OptCode::OptCodeType::Jneg, OptCode::ArgumentType::ConstValue);
     const OptCode* OptCode::HALT   = new OptCode("HALT", OptCode::OptCodeType::Halt, OptCode::ArgumentType::None);
     OptCode::OptCode(std::string name, OptCode::OptCodeType type, OptCode::ArgumentType argType) 
     : name(name), codeType(type), argType(argType) {}

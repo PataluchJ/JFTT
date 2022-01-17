@@ -2,7 +2,7 @@
 
 std::map<std::string, MemVar*> Environment::variables;
 std::vector<Instruction*> Environment::labels;
-size_t Environment::nextFree = 2;
+size_t Environment::nextFree = 0;
 size_t Environment::nextLabel = 0;
 MemVar* Environment::undef = new MemVar(false,true,0);
 
