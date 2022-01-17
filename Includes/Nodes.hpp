@@ -1,7 +1,7 @@
 #ifndef NODES_HPP
 #define NODES_HPP
 
-#include <Environment.hpp>
+#include "Environment.hpp"
 
 /*
 
@@ -53,5 +53,22 @@ class Expression : public Node {
 public:
     virtual InstructionList* calculateToRegister(Register r) = 0;
 };
+
+class Condition : public Node {
+public:
+    virtual InstructionList* generateCondtion(size_t jumpOutOffset) = 0;
+};
+
+class Command : public Node {
+public:
+    virtual InstructionList* generate() = 0;
+};
+
+class Commands : public Node {
+public:
+    std::list<Command*> commands;
+    InstructionList* generate() { return nullptr };
+};
+
 
 #endif

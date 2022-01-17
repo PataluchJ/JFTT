@@ -1,4 +1,4 @@
-#include "Assembly.hpp"
+#include "../Includes/Assembly.hpp"
 
 //namespace Machine {
     const OptCode* OptCode::GET    = new OptCode("GET", OptCode::OptCodeType::Get, OptCode::ArgumentType::None);
@@ -59,6 +59,7 @@ InstructionList* generateNumber(NumberType num, Register r){
     if(r != Register::a)
         temp = r;
     // Put 1 in temp register 
+    inst->push_back(new Instruction(OptCode::RESET, Register::a));
     inst->push_back(new Instruction(OptCode::RESET, temp));
     inst->push_back(new Instruction(OptCode::INC, temp));
 

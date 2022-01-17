@@ -1,11 +1,12 @@
 #ifndef TESTER_HPP
 #define TESTER_HPP
 
-#include <Expressions.hpp>
-#include <Value.hpp>
-#include <Identifiers.hpp>
+#include "Expressions.hpp"
+#include "Value.hpp"
+#include "Identifiers.hpp"
+#include "Commands.hpp"
 
-#include <Utility.hpp>
+#include "Utility.hpp"
 
 class Tester {
 public:
@@ -13,6 +14,8 @@ public:
 	static void testEnvironment();
 	static void testExpressions();
 	static void testIdentifiers();
+	static void testAssign();
+	static void testAssignArray();
 };
 
 #endif

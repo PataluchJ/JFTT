@@ -1,4 +1,4 @@
-#include "Identifiers.hpp"
+#include "../Includes/Identifiers.hpp"
 
 Variable::Variable(StringType name){
     this->name = name;
@@ -54,10 +54,12 @@ InstructionList* ArrayByVariable::addressToRegister(Register r){
     auto indexAddressInst = generateNumber(indexMem->address, Register::a);
     auto arrayAddressInst = generateNumber(arrayMem->address, temp);
     // Load index value to a
-    inst->merge(*indexAddressInst);
+   // inst->merge(*indexAddressInst);
+    inst->splice(inst->end(), *indexAddressInst);
     inst->push_back(new Instruction(OptCode::LOAD, Register::a));
     inst->push_back(new Instruction(OptCode::SUB, temp));
-    inst->merge(*arrayAddressInst);
+    //inst->merge(*arrayAddressInst);
+    inst->splice(inst->end(), *arrayAddressInst);
     inst->push_back(new Instruction(OptCode::ADD, temp));
     if(r != Register::a)
         inst->push_back(new Instruction(OptCode::SWAP, r));
@@ -81,7 +83,8 @@ InstructionList* ArrayByConst::addressToRegister(Register r){
     NumberType offset = index - arrayMem->leftBound;
     auto inst = generateNumber(offset, Register::a);
     auto arrayAddressInst = generateNumber(arrayMem->address, temp);
-    inst->merge(*arrayAddressInst);
+    //inst->merge(*arrayAddressInst);
+    inst->splice(inst->end(), *arrayAddressInst);
     inst->push_back(new Instruction(OptCode::ADD, temp));
 
     if(r != Register::a)

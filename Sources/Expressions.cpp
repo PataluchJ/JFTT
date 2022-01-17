@@ -1,4 +1,4 @@
-#include "Expressions.hpp"
+#include "../Includes/Expressions.hpp"
 
 ConstExpression::ConstExpression(Value* value){
     this->val = value;
@@ -73,7 +73,8 @@ InstructionList* AddExpression::calculateToRegister(Register r){
     }
     auto inst = this->right->valueToRegister(Register::c);
     auto loadLeftToA = this->left->valueToRegister(Register::a);
-    inst->merge(*loadLeftToA);
+    //inst->merge(*loadLeftToA);
+    inst->splice(inst->end(), *loadLeftToA);
     inst->push_back(new Instruction(OptCode::ADD, Register::c));
     if(r != Register::a)
         inst->push_back(new Instruction(OptCode::SWAP, r));
@@ -100,7 +101,8 @@ InstructionList* SubExpression::calculateToRegister(Register r){
     }
     auto inst = this->right->valueToRegister(Register::c);
     auto loadLeftToA = this->left->valueToRegister(Register::a);
-    inst->merge(*loadLeftToA);
+    //inst->merge(*loadLeftToA);
+    inst->splice(inst->end(), *loadLeftToA);
     inst->push_back(new Instruction(OptCode::SUB, Register::c));
     if(r != Register::a)
         inst->push_back(new Instruction(OptCode::SWAP, r));

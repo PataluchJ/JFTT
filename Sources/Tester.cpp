@@ -1,4 +1,4 @@
-#include <Tester.hpp>
+#include "../Includes/Tester.hpp"
 
 void Tester::testAssembly()
 {
@@ -137,4 +137,35 @@ void Tester::testIdentifiers()
     deleteInstructionList(varInst);
     deleteInstructionList(constInst);
     deleteInstructionList(varArInst);
+}
+
+void Tester::testAssign()
+{
+    Environment::declareVariable("n");
+    std::string name = "n";
+    Identifier* var = new Variable(&name);
+    Value* val = new ConstValue(20);
+    Expression* exp = new ConstExpression(val);
+    Assign* ass = new Assign(var, exp);
+
+    Value* varval = new VarValue(var);
+    Value* coval = new ConstValue(300);
+
+    Expression* exp2 = new AddExpression(varval, coval);
+    Assign* sec = new Assign(var, exp2);
+
+    auto list = ass->generate();
+    auto list2 = sec->generate();
+
+    
+    Util::printList(list);
+    Util::printList(list2);
+
+}
+
+void Tester::testAssignArray()
+{
+    Environment::declareArray("array", -10, 20);
+    std::string arrayName = "array";
+  //  Identifier* arrayIdentifier = new ArrayByConst("array", 0);
 }

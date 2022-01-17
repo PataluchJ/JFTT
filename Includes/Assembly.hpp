@@ -3,7 +3,7 @@
 
 #include <list>
 #include <string>
-#include <Logger.hpp>
+#include "Logger.hpp"
 
 typedef long long NumberType;
 typedef std::string* StringType;
@@ -16,7 +16,8 @@ enum Register {
     e = 4,
     f = 5,
     g = 6,
-    h = 7
+    h = 7,
+    None
 };
 
 struct OptCode{
