@@ -70,7 +70,12 @@ public:
 class Commands : public Node {
 public:
     std::list<Command*> commands;
-    InstructionList* generate() { return nullptr };
+    
+    InstructionList* generate();
+    void add(Command* com);
+
+    Commands(Command* com);
+    ~Commands();
 };
 
 

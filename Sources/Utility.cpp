@@ -9,3 +9,17 @@ void Util::printList(InstructionList* list) {
         std::cout << l->toString() << "\n";
     }
 }
+
+void Util::saveASM(InstructionList* list, std::string filename){
+    std::ofstream file(filename);
+    if(!file.good()){
+        std::cout << "Failed to open outfile.\n";
+        return;
+    }
+    for(auto& i : *list){
+        file << i->toString() << "\n";
+    }
+    file << "HALT\n";
+
+    file.close();
+}

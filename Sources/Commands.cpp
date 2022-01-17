@@ -115,3 +115,89 @@ InstructionList* While::generate()
 
 	return inst;
 }
+
+For::For(StringType iter, Value* iStart, Value* iEnd, Commands* block, bool reverse){
+	this->iterator = iter;
+	this->iStart = iStart;
+	this->iEnd = iEnd;
+	this->block = block;
+	this->reverse = reverse;
+}
+
+For::~For(){
+	delete this->iterator;
+	delete this->block;
+}
+
+InstructionList* For::generate(){
+	auto inst = new InstructionList;
+	return inst;
+}
+
+Repeat::Repeat(Condition* cond, Commands* commands)
+{
+	this->cond = cond;
+	this->block = commands;
+}
+
+Repeat::~Repeat()
+{
+	delete cond;
+	delete block;
+}
+
+InstructionList* Repeat::generate()
+{
+	auto inst = new InstructionList;
+
+	auto blockInst = block->generate();
+	auto condInst = cond->generateCondtion(blockInst->size() + 1);
+
+	inst->push_back(new Instruction(OptCode::JUMP, condInst->size()+1));
+	inst->splice(inst->end(), *condInst);
+	inst->splice(inst->end(), *blockInst);
+
+	delete blockInst;
+	delete condInst;
+
+	return inst;
+}
+
+Read::Read(Identifier* id) {
+	this->id = id;
+}
+Read::~Read(){
+	delete id;
+}	
+InstructionList* Read::generate(){
+	auto inst = new InstructionList;
+
+	auto addressToReg = id->addressToRegister(Register::b);
+
+	inst->splice(inst->end(), *addressToReg);
+	inst->push_back(new Instruction(OptCode::GET));
+	inst->push_back(new Instruction(OptCode::STORE, Register::b));
+
+	delete addressToReg;
+
+	return inst;
+}
+
+Write::Write(Value* val){
+	this->val = val;
+}
+Write::~Write(){
+	delete val;
+}
+InstructionList* Write::generate(){
+	auto inst = new InstructionList;
+	
+	auto valToReg = val->valueToRegister(Register::a);
+	
+	inst->splice(inst->end(), *valToReg);
+	inst->push_back(new Instruction(OptCode::PUT));
+
+	delete valToReg;
+
+	return inst;
+}

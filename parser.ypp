@@ -1,0 +1,121 @@
+%{
+
+#include "Includes/Commands.hpp"
+#include "Includes/Conditions.hpp"
+#include "Includes/Identifiers.hpp"
+#include "Includes/Expressions.hpp"
+#include "Includes/Value.hpp"
+#include "Includes/Nodes.hpp"
+#include "Includes/Environment.hpp"
+#include "Includes/Utility.hpp"
+
+#include<string>
+#include<iostream>
+
+extern int yylex();
+extern int yylineno;
+extern FILE *yyin;
+int yyerror(std::string);
+
+Commands* root;
+%}
+
+%token <token> VAR P_BEGIN END
+%token <token> ASSIGN IF THEN ELSE ENDIF
+%token <token> WHILE DO ENDWHILE
+%token <token> REPEAT UNTIL
+%token <token> FOR FROM TO DOWNTO ENDFOR
+%token <token> READ WRITE
+%token <token> PLUS MINUS TIMES DIV MOD
+%token <token> EQ NEQ LE GE LEQ GEQ
+%token <token> BRACKETL BRACKETR
+%token <token> COMA SEM COL
+%token pidentifier number
+
+%union{
+    std::string* str;
+    long long num;
+    int token;
+    Commands* cmds;
+    Command* cmd;
+    Value* val;
+    Condition* cond;
+    Expression* expr;
+    Identifier* ident;
+}
+
+%type <cmds> commands
+%type <cmd> command
+%type <val> value
+%type <ident> identifier
+%type <expr> expression
+%type <cond> condition
+%type <str> pidentifier
+%type <num> number
+
+%%
+
+program:
+    VAR declarations P_BEGIN commands END                           {root = $4;}
+    | P_BEGIN commands END                                          {root = $2;}
+declarations:
+    declarations COMA pidentifier                                           {Environment::declareVariable(*$3);}
+    | declarations COMA pidentifier BRACKETL number COL number BRACKETR     {Environment::declareArray(*$3,$5,$7);}
+    | pidentifier                                                           {Environment::declareVariable(*$1);}
+    | pidentifier BRACKETL number COL number BRACKETR                       {Environment::declareArray(*$1,$3,$5);}
+commands:
+    commands command                                                {$1->add($2);}
+    | command                                                       {$$ = new Commands($1);}
+command:
+    identifier ASSIGN expression SEM                                {$$ = new Assign($1,$3);}
+    | IF condition THEN commands ELSE commands ENDIF                {$$ = new If_Else($2,$4,$6);}
+    | IF condition THEN commands ENDIF                              {$$ = new If($2,$4);}
+    | WHILE condition DO commands ENDWHILE                          {$$ = new While($2, $4);}
+    | REPEAT commands UNTIL condition SEM                           {$$ = new Repeat($4,$2);}
+    | FOR pidentifier FROM value TO value DO commands ENDFOR        {$$ = new For($2, $4, $6, $8);}
+    | FOR pidentifier FROM value DOWNTO value DO commands ENDFOR    {$$ = new For($2, $4, $6, $8, true);}
+    | READ identifier SEM                                           {$$ = new Read($2);}
+    | WRITE value SEM                                               {$$ = new Write($2);}
+expression:
+    value                   {$$ = new ConstExpression($1);}
+    | value PLUS value      {$$ = new AddExpression($1,$3);}
+    | value MINUS value     {$$ = new SubExpression($1,$3);}
+    | value TIMES value     {$$ = new MulExpression($1,$3);}
+    | value DIV value       {$$ = new DivExpression($1,$3);}
+    | value MOD value       {$$ = new ModExpression($1,$3);}
+condition:
+    value EQ value          {$$ = new Equal($1,$3);}
+    | value NEQ value       {$$ = new NotEqual($1,$3);}
+    | value LE value        {$$ = new Lesser($1,$3);}
+    | value GE value        {$$ = new Greater($1,$3);}
+    | value LEQ value       {$$ = new NotGreater($1,$3);}
+    | value GEQ value       {$$ = new NotLesser($1,$3);}
+value:
+    number                  {$$ = new ConstValue($1);}
+    | identifier            {$$ = new VarValue($1);}
+identifier:
+    pidentifier                                     {$$ = new Variable($1);}
+    | pidentifier BRACKETL pidentifier BRACKETR     {$$ = new ArrayByVariable($1,$3);}
+    | pidentifier BRACKETL number BRACKETR          {$$ = new ArrayByConst($1,$3);}
+%%
+
+int yyerror(std::string str){
+    std::cout << "Error: " << str << " at line " << yylineno << "\n";
+    std::cout << "Line: " << *yylval.str << "\n"; 
+    return 0;
+}
+
+int main(int argc, char *argv[])
+{
+
+    yyin = fopen(argv[1], "r");
+    if (argv[1] == NULL || argv[2] == NULL){
+        std::cout << "Missing arguments\n";
+        exit(1);
+    }
+	yyparse();
+    Util::saveASM(root->generate(), std::string(argv[2]));
+    delete root;
+    std::cout << "Compiled without errors.\n";
+	return 0;
+}

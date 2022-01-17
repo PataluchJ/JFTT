@@ -14,3 +14,25 @@ InstructionList* Condition::subtractToRegister(Value* left, Value* right)
 
 	return inst;
 }
+
+Commands::Commands(Command* com){
+	this->commands.push_back(com);
+}
+Commands::~Commands(){
+	for(auto& c : commands){
+		delete c;
+	}
+}
+
+InstructionList* Commands::generate(){
+	auto inst = new InstructionList;
+
+	for(auto& c : commands){
+		inst->splice(inst->end(), *(c->generate()));
+	}
+
+	return inst;
+}
+void Commands::add(Command* com){
+	this->commands.push_back(com);
+}
