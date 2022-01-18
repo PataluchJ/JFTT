@@ -2,6 +2,8 @@
 #define COMMANDS_HPP
 
 #include "Nodes.hpp"
+#include "Conditions.hpp"
+#include "Expressions.hpp"
 
 class Assign : public Command {
 public:
@@ -45,12 +47,19 @@ public:
 
 class For : public Command {
 public:
-	StringType iterator;
+	Identifier* iterator;
 	Value* iStart;
 	Value* iEnd;
 	Commands* block;
+
+	Value* iterValue;
+	Assign* setIteratorStartValue;
+	Assign* increment;
+	Condition* cond;
+	While* loop;
+
 	bool reverse;
-	For(StringType iter, Value* iStart, Value* iEnd, Commands* block, bool reverse = false);
+	For(Identifier* iter, Value* iStart, Value* iEnd, Commands* block, bool reverse = false);
 	~For();
 	InstructionList* generate() override;
 };

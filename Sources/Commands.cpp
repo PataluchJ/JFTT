@@ -130,12 +130,24 @@ InstructionList* While::generate()
 	return inst;
 }
 
-For::For(StringType iter, Value* iStart, Value* iEnd, Commands* block, bool reverse){
+For::For(Identifier* iter, Value* iStart, Value* iEnd, Commands* block, bool reverse){
 	this->iterator = iter;
+	this->iterValue = new VarValue(iter);
 	this->iStart = iStart;
 	this->iEnd = iEnd;
 	this->block = block;
 	this->reverse = reverse;
+	this->setIteratorStartValue = new Assign(iter, new ConstExpression(iStart));
+	if(reverse) {
+		this->increment = new Assign(iter, new AddExpression(iterValue, new ConstValue(-1)));
+		this->cond = new NotLesser(iterValue, iEnd);
+	}
+	else {
+		this->increment = new Assign(iter, new AddExpression(iterValue, new ConstValue(1)));
+		this->cond = new NotGreater(iterValue, iEnd);
+	}
+	this->block->add(this->increment);
+	this->loop = new While(cond, block);
 }
 
 For::~For(){
@@ -144,7 +156,8 @@ For::~For(){
 }
 
 InstructionList* For::generate(){
-	auto inst = new InstructionList;
+	auto inst = this->setIteratorStartValue->generate();
+	inst->splice(inst->end(), *(this->loop->generate()));
 	return inst;
 }
 

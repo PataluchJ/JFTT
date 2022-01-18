@@ -47,7 +47,7 @@
 "FOR"       {return FOR;}
 "FROM"      {return FROM;}
 "TO"        {return TO;}
-"DO"        {return DO;}
+"DOWNTO"    {return DOWNTO;}
 "ENDFOR"    {return ENDFOR;}
 
 "READ"      {return READ;}
