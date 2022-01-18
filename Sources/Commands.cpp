@@ -163,15 +163,17 @@ Repeat::~Repeat()
 InstructionList* Repeat::generate()
 {
 	auto inst = new InstructionList;
-
+	Logger::log("Repeat{");
+	Logger::indent += 1;
 	auto blockInst = block->generate();
-	auto condInst = cond->generateCondtion(blockInst->size()+2);
-
-	inst->push_back(new Instruction(OptCode::JUMP, condInst->size()+1));
-	inst->splice(inst->end(), *condInst);
+	auto condInst = cond->generateCondtion(2);
+	
 	inst->splice(inst->end(), *blockInst);
-	inst->push_back(new Instruction(OptCode::JUMP, (-1) *( inst->size() + 1)));
+	inst->splice(inst->end(), *condInst);
+	inst->push_back(new Instruction(OptCode::JUMP, (-1)*(inst->size())));
 
+	Logger::indent -= 1;
+	Logger::log("}Repeat");
 	delete blockInst;
 	delete condInst;
 

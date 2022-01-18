@@ -1,5 +1,14 @@
 #include "../Includes/Conditions.hpp"
 
+/*
+Condition:
+a <= b ->  a - b <= 0 -> !(a-b>0)
+JPOS OUT
+a < b -> a - b < 0 -> !(a-b>=0)
+JPOS OUT
+JZER OUT 
+
+*/
 InstructionList* Equal::generateCondtion(size_t jumpOutOffset)
 {
 	/*
