@@ -149,16 +149,22 @@ class Debuger:
                 if self.registersContent[0] > 0:
                     j = int(inst[1])
                     self.currentInstruction += j
+                else:
+                    self.currentInstruction += 1
                 
             elif inst[0] == "JZERO":
                 if self.registersContent[0] == 0:
                     j = int(inst[1])
                     self.currentInstruction += j
+                else:
+                    self.currentInstruction += 1
 
             elif inst[0] == "JNEG":
                 if self.registersContent[0] < 0:
                     j = int(inst[1])
                     self.currentInstruction += j
+                else:
+                    self.currentInstruction += 1
 
             elif inst[0] == "HALT":
                 self.halted = True
