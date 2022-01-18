@@ -17,11 +17,12 @@ InstructionList* Assign::generate()
 	Logger::log("Assign: {");
 	Logger::indent += 1;
 	auto address = this->var->addressToRegister(Register::g);
-	auto val = this->exp->calculateToRegister(Register::a);
+	auto val = this->exp->calculateToRegister(Register::h);
 
 	auto inst = new InstructionList;
-	inst->splice(inst->end(), *address);
 	inst->splice(inst->end(), *val);
+	inst->splice(inst->end(), *address);
+	inst->push_back(new Instruction(OptCode::SWAP, Register::h));
 	inst->push_back(new Instruction(OptCode::STORE, Register::g));
 	Logger::indent -= 1;
 	Logger::log("}Assign");
