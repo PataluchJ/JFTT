@@ -45,10 +45,11 @@ If::~If()
 InstructionList* If::generate()
 {
 	auto inst = new InstructionList;
-	Logger::log("If: {");
+	Logger::log("If:(inBlock, condBlock) {");
 	Logger::indent += 1;
+
 	auto inBlock = commands->generate();
-	auto condBlock = cond->generateCondtion(inBlock->size());
+	auto condBlock = cond->generateCondtion(inBlock->size()+1);
 
 	inst->splice(inst->end(), *condBlock);
 	inst->splice(inst->end(), *inBlock);
@@ -81,8 +82,8 @@ InstructionList* If_Else::generate()
 {
 	auto elseBlockInst = elseBlock->generate();
 	auto ifBlockInst = ifBlock->generate();
-	ifBlockInst->push_back(new Instruction(OptCode::JUMP, elseBlockInst->size()));
-	auto condBlockInst = cond->generateCondtion(ifBlockInst->size());
+	ifBlockInst->push_back(new Instruction(OptCode::JUMP, elseBlockInst->size()+1));
+	auto condBlockInst = cond->generateCondtion(ifBlockInst->size()+1);
 
 	auto inst = new InstructionList;
 	inst->splice(inst->end(), *condBlockInst);
@@ -111,13 +112,17 @@ While::~While()
 InstructionList* While::generate()
 {
 	auto inst = new InstructionList;
-
+	Logger::log("While{");
+	Logger::indent += 1;
 	auto blockInst = block->generate();
-	auto condInst = cond->generateCondtion(blockInst->size());
+	auto condInst = cond->generateCondtion(blockInst->size()+2);
 
 	inst->splice(inst->end(), *condInst);
 	inst->splice(inst->end(), *blockInst);
+	inst->push_back(new Instruction(OptCode::JUMP, (-1) *( inst->size() + 1)));
 
+	Logger::indent -= 1;
+	Logger::log("}While");
 	delete blockInst;
 	delete condInst;
 
@@ -159,11 +164,12 @@ InstructionList* Repeat::generate()
 	auto inst = new InstructionList;
 
 	auto blockInst = block->generate();
-	auto condInst = cond->generateCondtion(blockInst->size());
+	auto condInst = cond->generateCondtion(blockInst->size()+2);
 
-	inst->push_back(new Instruction(OptCode::JUMP, condInst->size()));
+	inst->push_back(new Instruction(OptCode::JUMP, condInst->size()+1));
 	inst->splice(inst->end(), *condInst);
 	inst->splice(inst->end(), *blockInst);
+	inst->push_back(new Instruction(OptCode::JUMP, (-1) *( inst->size() + 1)));
 
 	delete blockInst;
 	delete condInst;
