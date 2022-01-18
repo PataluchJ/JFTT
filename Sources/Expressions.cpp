@@ -111,7 +111,100 @@ InstructionList* SubExpression::calculateToRegister(Register r){
     return inst;
 }
 InstructionList* MulExpression::calculateToRegister(Register r){
+    /*
+    #####  |a| > |b| oraz b > 0 
+    c = a
+    d = b
+    if a < 0 
+     c = -a
+    else 
+     c = a
+    if b < 0
+     d = -b
+    else 
+     d = b 
+    if b - c > 0 
+     swap a <> b  
+    #####   
+    08 if b == 0 JUMP 14
+    09 if b - (b>>1)<<1 == 0 JUMP 11
+    10 r += a
+    11 a = a<<1
+    12 b = b>>1
+    13 JUMP 8
+    14 return r
+    Registers:
+    rb = a, rc=b rd=|a| 
+    */
     InstructionList* inst = new InstructionList;
+    // rc = b 
+    auto loadBToC = this->right->valueToRegister(Register::c);
+    // rd = a 
+    auto loadAToB = this->left->valueToRegister(Register::b);
+    
+    inst->splice(inst->end(), *loadBToC);
+    inst->splice(inst->end(), *loadAToB); 
+
+    delete loadBToC;
+    delete loadAToB;
+    // Start: rb = a , rc = b 
+    // End |rb| > |rc|, Using rd = |a| re=|b|
+    // rd = |a|
+    inst->push_back(new Instruction(OptCode::RESET, Register::a));
+    inst->push_back(new Instruction(OptCode::SUB, Register::b));
+    inst->push_back(new Instruction(OptCode::JPOS, 3));
+    inst->push_back(new Instruction(OptCode::RESET, Register::a ));
+    inst->push_back(new Instruction(OptCode::ADD, Register::b ));
+    inst->push_back(new Instruction(OptCode::SWAP, Register::d ));
+    // ra = |b|
+    inst->push_back(new Instruction(OptCode::RESET, Register::a));
+    inst->push_back(new Instruction(OptCode::SUB, Register::c));
+    inst->push_back(new Instruction(OptCode::JPOS, 3));
+    inst->push_back(new Instruction(OptCode::RESET, Register::a ));
+    inst->push_back(new Instruction(OptCode::ADD, Register::c ));
+    // ra = |b| - |a| 
+    inst->push_back(new Instruction(OptCode::SUB, Register::d));
+    // if ra > 0 swap rb <> rc
+    inst->push_back(new Instruction(OptCode::JNEG, 4));
+    inst->push_back(new Instruction(OptCode::SWAP, Register::b));
+    inst->push_back(new Instruction(OptCode::SWAP, Register::c));
+    inst->push_back(new Instruction(OptCode::SWAP, Register::b));
+    // a * b where |a| > |b| 
+    // Start: rb = a rc = b
+    // Using: re = helper for last bit of b, rd = -1, re = 1, rf = result
+    // Prepare rd, re, rf
+    inst->push_back(new Instruction(OptCode::RESET, Register::d));
+    inst->push_back(new Instruction(OptCode::DEC, Register::d));
+    inst->push_back(new Instruction(OptCode::RESET, Register::e));
+    inst->push_back(new Instruction(OptCode::INC, Register::e));
+    inst->push_back(new Instruction(OptCode::RESET, Register::f));
+    /// while b != 0 
+    inst->push_back(new Instruction(OptCode::SWAP, Register::c));
+    inst->push_back(new Instruction(OptCode::JZERO, 18));
+    
+    inst->push_back(new Instruction(OptCode::SWAP, Register::c));
+    inst->push_back(new Instruction(OptCode::RESET, Register::a));
+    inst->push_back(new Instruction(OptCode::ADD, Register::c)); // ra = b 
+    inst->push_back(new Instruction(OptCode::SHIFT, Register::d));
+    inst->push_back(new Instruction(OptCode::SHIFT, Register::e)); // ra = b & 0b111..10
+    inst->push_back(new Instruction(OptCode::SUB, Register::c)); // ra = ((b>>1)<<1) - b
+
+    inst->push_back(new Instruction(OptCode::JZERO, 4)); // Last bit was zero, skip adding to f
+    inst->push_back(new Instruction(OptCode::SWAP, Register::f));
+    inst->push_back(new Instruction(OptCode::ADD, Register::b)); // res += a
+    inst->push_back(new Instruction(OptCode::SWAP, Register::f));
+
+    inst->push_back(new Instruction(OptCode::SWAP, Register::b)); // ra = a
+    inst->push_back(new Instruction(OptCode::SHIFT, Register::e)); // ra = a*2
+    inst->push_back(new Instruction(OptCode::SWAP, Register::b));
+
+    inst->push_back(new Instruction(OptCode::SWAP, Register::c)); // ra = b
+    inst->push_back(new Instruction(OptCode::SHIFT, Register::d)); // ra = b/2
+    inst->push_back(new Instruction(OptCode::SWAP, Register::c));
+    inst->push_back(new Instruction(OptCode::JUMP, -18));
+
+    inst->push_back(new Instruction(OptCode::SWAP, Register::f));
+    inst->push_back(new Instruction(OptCode::SWAP, r));
     return inst;
 }
 InstructionList* DivExpression::calculateToRegister(Register r){
