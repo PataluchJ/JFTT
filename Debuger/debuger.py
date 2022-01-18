@@ -1,6 +1,8 @@
 # Debug do programów napisanych na maszynę wirtualną
 # JFTT PWR 2021/2022
 # Autor: Jakub Patałuch
+# requirements:
+#   asciimatics
 # Program przyjmuje plik jako pierwszy argument 
 # np. python debuger.py code.asm
 # Sterowanie: 
@@ -79,53 +81,65 @@ class Debuger:
                 self.screen.clear_buffer(fg=self.COLOUR_WHITE, bg=self.COLOUR_BLACK, attr=2)
                 val = input("Input: ")
                 self.registersContent[0] = int(val)
+                self.currentInstruction += 1
                 
             elif inst[0] == "PUT":
                 self.printedByMachine.append(self.registersContent[0])
+                self.currentInstruction += 1
                 
             elif inst[0] == "RESET":
                 reg = self.stringToReg(inst[1])
                 self.registersContent[reg] = 0
+                self.currentInstruction += 1
                 
             elif inst[0] == "LOAD":
                 reg = self.stringToReg(inst[1])
                 if self.registersContent[reg] not in self.memory:
                     self.registersContent[0] = 8080808080
                 self.registersContent[0] = self.memory[self.registersContent[reg]]
+                self.currentInstruction += 1
 
             elif inst[0] == "STORE":
                 reg = self.stringToReg(inst[1])
                 self.memory[self.registersContent[reg]] = self.registersContent[0]
+                self.currentInstruction += 1
 
             elif inst[0] == "ADD":
                 reg = self.stringToReg(inst[1])
                 self.registersContent[0] += self.registersContent[reg]
+                self.currentInstruction += 1
                 
             elif inst[0] == "SUB":
                 reg = self.stringToReg(inst[1])
                 self.registersContent[0] -= self.registersContent[reg]
+                self.currentInstruction += 1
                 
             elif inst[0] == "SHIFT":
                 reg = self.stringToReg(inst[1])
                 self.registersContent[0] = floor(self.registersContent[0] * 2**self.registersContent[reg])
+                self.currentInstruction += 1
                 
             elif inst[0] == "SWAP":
                 reg = self.stringToReg(inst[1])
                 t = self.registersContent[reg]
                 self.registersContent[reg] = self.registersContent[0]
                 self.registersContent[0] = t
+                self.currentInstruction += 1
                 
             elif inst[0] == "RESET":
                 reg = self.stringToReg(inst[1])
                 self.registersContent[reg] = 0
+                self.currentInstruction += 1
                 
             elif inst[0] == "INC":
                 reg = self.stringToReg(inst[1])
                 self.registersContent[reg] += 1
+                self.currentInstruction += 1
                 
             elif inst[0] == "DEC":
                 reg = self.stringToReg(inst[1])
                 self.registersContent[reg] -= 1
+                self.currentInstruction += 1
                 
             elif inst[0] == "JUMP":
                 j = int(inst[1])
@@ -241,7 +255,6 @@ class Debuger:
                     if self.applyInstruction(instructions[self.currentInstruction]):
                         if instructionListPosition == self.currentInstruction:
                             instructionListPosition += 1
-                        self.currentInstruction += 1
                     else:
                         currentColor = self.COLOUR_RED
                         self.autoStep = False
@@ -251,7 +264,6 @@ class Debuger:
                 self.applyInstruction(instructions[self.currentInstruction])
                 if instructionListPosition == self.currentInstruction:
                     instructionListPosition += 1
-                self.currentInstruction += 1
             if ev in (ord('b'), ord('B')):
                 if self.backStackSize > 0:
                     self.registersContent = self.prevRegisters.pop()
