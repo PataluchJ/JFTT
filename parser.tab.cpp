@@ -573,9 +573,9 @@ static const yytype_int8 yytranslate[] =
 static const yytype_int8 yyrline[] =
 {
        0,    59,    59,    60,    62,    63,    64,    65,    67,    68,
-      70,    71,    72,    73,    74,    75,    76,    77,    78,    80,
-      81,    82,    83,    84,    85,    87,    88,    89,    90,    91,
-      92,    94,    95,    97,    98,    99
+      70,    71,    72,    73,    74,    75,    81,    87,    88,    90,
+      91,    92,    93,    94,    95,    97,    98,    99,   100,   101,
+     102,   104,   105,   107,   108,   109
 };
 #endif
 
@@ -1528,133 +1528,141 @@ yyreduce:
     break;
 
   case 15:
-#line 75 "parser.ypp"
-                                                                    {(yyval.cmd) = new For((yyvsp[-7].str), (yyvsp[-5].val), (yyvsp[-3].val), (yyvsp[-1].cmds));}
-#line 1534 "parser.tab.cpp"
+#line 76 "parser.ypp"
+        {
+            Environment::declareIterator(*(yyvsp[-7].str)); 
+            Identifier* iter = new Variable((yyvsp[-7].str));
+            (yyval.cmd) = new For(iter, (yyvsp[-5].val), (yyvsp[-3].val), (yyvsp[-1].cmds));
+        }
+#line 1538 "parser.tab.cpp"
     break;
 
   case 16:
-#line 76 "parser.ypp"
-                                                                    {(yyval.cmd) = new For((yyvsp[-7].str), (yyvsp[-5].val), (yyvsp[-3].val), (yyvsp[-1].cmds), true);}
-#line 1540 "parser.tab.cpp"
+#line 82 "parser.ypp"
+        {
+            Environment::declareIterator(*(yyvsp[-7].str)); 
+            Identifier* iter = new Variable((yyvsp[-7].str));
+            (yyval.cmd) = new For(iter, (yyvsp[-5].val), (yyvsp[-3].val), (yyvsp[-1].cmds), true);
+        }
+#line 1548 "parser.tab.cpp"
     break;
 
   case 17:
-#line 77 "parser.ypp"
+#line 87 "parser.ypp"
                                                                     {(yyval.cmd) = new Read((yyvsp[-1].ident));}
-#line 1546 "parser.tab.cpp"
+#line 1554 "parser.tab.cpp"
     break;
 
   case 18:
-#line 78 "parser.ypp"
+#line 88 "parser.ypp"
                                                                     {(yyval.cmd) = new Write((yyvsp[-1].val));}
-#line 1552 "parser.tab.cpp"
+#line 1560 "parser.tab.cpp"
     break;
 
   case 19:
-#line 80 "parser.ypp"
+#line 90 "parser.ypp"
                             {(yyval.expr) = new ConstExpression((yyvsp[0].val));}
-#line 1558 "parser.tab.cpp"
+#line 1566 "parser.tab.cpp"
     break;
 
   case 20:
-#line 81 "parser.ypp"
+#line 91 "parser.ypp"
                             {(yyval.expr) = new AddExpression((yyvsp[-2].val),(yyvsp[0].val));}
-#line 1564 "parser.tab.cpp"
+#line 1572 "parser.tab.cpp"
     break;
 
   case 21:
-#line 82 "parser.ypp"
+#line 92 "parser.ypp"
                             {(yyval.expr) = new SubExpression((yyvsp[-2].val),(yyvsp[0].val));}
-#line 1570 "parser.tab.cpp"
+#line 1578 "parser.tab.cpp"
     break;
 
   case 22:
-#line 83 "parser.ypp"
+#line 93 "parser.ypp"
                             {(yyval.expr) = new MulExpression((yyvsp[-2].val),(yyvsp[0].val));}
-#line 1576 "parser.tab.cpp"
+#line 1584 "parser.tab.cpp"
     break;
 
   case 23:
-#line 84 "parser.ypp"
+#line 94 "parser.ypp"
                             {(yyval.expr) = new DivExpression((yyvsp[-2].val),(yyvsp[0].val));}
-#line 1582 "parser.tab.cpp"
+#line 1590 "parser.tab.cpp"
     break;
 
   case 24:
-#line 85 "parser.ypp"
+#line 95 "parser.ypp"
                             {(yyval.expr) = new ModExpression((yyvsp[-2].val),(yyvsp[0].val));}
-#line 1588 "parser.tab.cpp"
+#line 1596 "parser.tab.cpp"
     break;
 
   case 25:
-#line 87 "parser.ypp"
+#line 97 "parser.ypp"
                             {(yyval.cond) = new Equal((yyvsp[-2].val),(yyvsp[0].val));}
-#line 1594 "parser.tab.cpp"
+#line 1602 "parser.tab.cpp"
     break;
 
   case 26:
-#line 88 "parser.ypp"
+#line 98 "parser.ypp"
                             {(yyval.cond) = new NotEqual((yyvsp[-2].val),(yyvsp[0].val));}
-#line 1600 "parser.tab.cpp"
+#line 1608 "parser.tab.cpp"
     break;
 
   case 27:
-#line 89 "parser.ypp"
+#line 99 "parser.ypp"
                             {(yyval.cond) = new Lesser((yyvsp[-2].val),(yyvsp[0].val));}
-#line 1606 "parser.tab.cpp"
+#line 1614 "parser.tab.cpp"
     break;
 
   case 28:
-#line 90 "parser.ypp"
+#line 100 "parser.ypp"
                             {(yyval.cond) = new Greater((yyvsp[-2].val),(yyvsp[0].val));}
-#line 1612 "parser.tab.cpp"
+#line 1620 "parser.tab.cpp"
     break;
 
   case 29:
-#line 91 "parser.ypp"
+#line 101 "parser.ypp"
                             {(yyval.cond) = new NotGreater((yyvsp[-2].val),(yyvsp[0].val));}
-#line 1618 "parser.tab.cpp"
+#line 1626 "parser.tab.cpp"
     break;
 
   case 30:
-#line 92 "parser.ypp"
+#line 102 "parser.ypp"
                             {(yyval.cond) = new NotLesser((yyvsp[-2].val),(yyvsp[0].val));}
-#line 1624 "parser.tab.cpp"
+#line 1632 "parser.tab.cpp"
     break;
 
   case 31:
-#line 94 "parser.ypp"
+#line 104 "parser.ypp"
                             {(yyval.val) = new ConstValue((yyvsp[0].num));}
-#line 1630 "parser.tab.cpp"
+#line 1638 "parser.tab.cpp"
     break;
 
   case 32:
-#line 95 "parser.ypp"
+#line 105 "parser.ypp"
                             {(yyval.val) = new VarValue((yyvsp[0].ident));}
-#line 1636 "parser.tab.cpp"
+#line 1644 "parser.tab.cpp"
     break;
 
   case 33:
-#line 97 "parser.ypp"
+#line 107 "parser.ypp"
                                                     {(yyval.ident) = new Variable((yyvsp[0].str));}
-#line 1642 "parser.tab.cpp"
+#line 1650 "parser.tab.cpp"
     break;
 
   case 34:
-#line 98 "parser.ypp"
+#line 108 "parser.ypp"
                                                     {(yyval.ident) = new ArrayByVariable((yyvsp[-3].str),(yyvsp[-1].str));}
-#line 1648 "parser.tab.cpp"
+#line 1656 "parser.tab.cpp"
     break;
 
   case 35:
-#line 99 "parser.ypp"
+#line 109 "parser.ypp"
                                                     {(yyval.ident) = new ArrayByConst((yyvsp[-3].str),(yyvsp[-1].num));}
-#line 1654 "parser.tab.cpp"
+#line 1662 "parser.tab.cpp"
     break;
 
 
-#line 1658 "parser.tab.cpp"
+#line 1666 "parser.tab.cpp"
 
       default: break;
     }
@@ -1886,7 +1894,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 100 "parser.ypp"
+#line 110 "parser.ypp"
 
 
 int yyerror(std::string str){
@@ -1904,6 +1912,11 @@ int main(int argc, char *argv[])
         exit(1);
     }
 	yyparse();
+    Environment::finalizeDeclarations();
+    if(Environment::declarationsFailed){
+        std::cout << "Unable to declare all variables. Compilation failed.\n";
+        return -1;
+    }
     Util::saveASM(root->generate(), std::string(argv[2]));
     delete root;
     std::cout << "Compiled without errors.\n";

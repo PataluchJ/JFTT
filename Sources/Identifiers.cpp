@@ -34,63 +34,45 @@ InstructionList* Variable::addressToRegister(Register r){
 
 InstructionList* ArrayByVariable::addressToRegister(Register r){
     /*
-        arrat[var]->address = array->address + (index.val - leftBound)
-        Load LeftBound into c
-        Load index value to a
-        Sub c
-        Load address to c
-        Add c
-        Profit
+        Get address of cel inside of array indexed by variable
     */
-    auto arrayMem = Environment::getVariable(*name);
-    auto indexMem = Environment::getVariable(*index);
 
-    Register temp = Register::b;
-    if(r != Register::a)
-        temp = r;
+    std::string* indexNameCopy = new std::string(*(this->index));
+    std::string* nameCopy = new std::string(*(this->index));
 
-    // Load left bound to c
-    auto inst = generateNumber(arrayMem->leftBound, temp);
-    auto indexAddressInst = generateNumber(indexMem->address, Register::a);
-    auto arrayAddressInst = generateNumber(arrayMem->address, temp);
-    // Load index value to a
-   // inst->merge(*indexAddressInst);
-    inst->splice(inst->end(), *indexAddressInst);
-    inst->push_back(new Instruction(OptCode::LOAD, Register::a));
-    inst->push_back(new Instruction(OptCode::SUB, temp));
-    //inst->merge(*arrayAddressInst);
-    inst->splice(inst->end(), *arrayAddressInst);
+    Value* indexValue = new VarValue(new Variable(indexNameCopy));
+    Identifier* array = new Variable(nameCopy);
+
+    Register temp = r;
+    if(r == Register::b)
+        temp = Register::c;
+
+    auto arrayZeroAddressInst = array->addressToRegister(temp);
+    auto indexValueInst = indexValue->valueToRegister(Register::a);
+
+    auto inst = new InstructionList;
+    inst->splice(inst->end(), *arrayZeroAddressInst);
+    inst->splice(inst->end(), *indexValueInst);
     inst->push_back(new Instruction(OptCode::ADD, temp));
-    if(r != Register::a)
-        inst->push_back(new Instruction(OptCode::SWAP, r));
+    inst->push_back(new Instruction(OptCode::SWAP, r));
 
-    //delete indexAddressInst;
-    //delete arrayAddressInst;
+    delete arrayZeroAddressInst;
+    delete indexValueInst;
+
+    //delete array;
+    //delete indexValueInst;
+
     return inst;
 }
 
 InstructionList* ArrayByConst::addressToRegister(Register r){
     /*
-        array[const]->address = array->address + (index - leftBound)
-        ... = array->address + offset
+        Get address of cell inside array indexed by const value
     */
     auto arrayMem = Environment::getVariable(*name);
+    NumberType address = this->index + arrayMem->address;
 
-    Register temp = Register::b;
-    if(r != Register::a)
-        temp = r;
-
-    NumberType offset = index - arrayMem->leftBound;
-    auto inst = generateNumber(offset, Register::a);
-    auto arrayAddressInst = generateNumber(arrayMem->address, temp);
-    //inst->merge(*arrayAddressInst);
-    inst->splice(inst->end(), *arrayAddressInst);
-    inst->push_back(new Instruction(OptCode::ADD, temp));
-
-    if(r != Register::a)
-        inst->push_back(new Instruction(OptCode::SWAP, r));
-
-    delete arrayAddressInst;
+    auto inst = generateNumber(address, r);
     return inst;
 }
 

@@ -222,9 +222,10 @@ Write::~Write(){
 InstructionList* Write::generate(){
 	auto inst = new InstructionList;
 	
-	auto valToReg = val->valueToRegister(Register::a);
+	auto valToReg = val->valueToRegister(Register::c);
 	
 	inst->splice(inst->end(), *valToReg);
+	inst->push_back(new Instruction(OptCode::SWAP, Register::c));
 	inst->push_back(new Instruction(OptCode::PUT));
 
 	delete valToReg;

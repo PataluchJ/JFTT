@@ -343,7 +343,7 @@ InstructionList* ModExpression::calculateToRegister(Register target){
     inst->push_back(new Instruction(OptCode::SWAP, b));
     inst->push_back(new Instruction(OptCode::JZERO, 2));
     inst->push_back(new Instruction(OptCode::JUMP, 3));
-    inst->push_back(new Instruction(OptCode::RESET, r));
+    inst->push_back(new Instruction(OptCode::RESET, a));
     inst->push_back(new Instruction(OptCode::JUMP, 56));
     inst->push_back(new Instruction(OptCode::SWAP, b));
     /*  sign = 1; pOne = 1;  mOne = -1; r = 0;*/

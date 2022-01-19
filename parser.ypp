@@ -82,7 +82,7 @@ command:
         {
             Environment::declareIterator(*$2); 
             Identifier* iter = new Variable($2);
-            $$ = new For(iter, $6, $4, $8, true);
+            $$ = new For(iter, $4, $6, $8, true);
         }
     | READ identifier SEM                                           {$$ = new Read($2);}
     | WRITE value SEM                                               {$$ = new Write($2);}

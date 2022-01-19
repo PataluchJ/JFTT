@@ -74,11 +74,11 @@ void Environment::finalizeDeclarations(){
         nextFree += 1;
     }
     for(auto& arr  : arraysDeclarations){
-        var = new MemVar(Environment::nextFree, arr.leftBound, arr.rightBound);
         if(arr.leftBound > arr.rightBound){
             Logger::err("Failed to declare \"" + arr.name + "\", left bound > right bound.");
             Environment::declarationsFailed = true;
         }
+        var = new MemVar(Environment::nextFree-arr.leftBound, arr.leftBound, arr.rightBound);
         Environment::addToMemory(arr.name, var);
         nextFree += arr.rightBound-arr.leftBound;
     }
