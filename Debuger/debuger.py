@@ -296,7 +296,10 @@ class Debuger:
             if ev in (ord('q'), ord('Q')):
                 self.halted = True 
             if ev in (ord('z'), ord('Z')):
-                self.halted = True 
+                if self.focusLocket:
+                    self.focusLocket = False
+                else:
+                    self.focusLocket = True 
             screen.refresh()
             screen.clear_buffer(fg=self.COLOUR_WHITE, bg=self.COLOUR_BLACK, attr=2, w=screen.width, h=screen.height)
 
