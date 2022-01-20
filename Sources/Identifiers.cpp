@@ -36,9 +36,9 @@ InstructionList* ArrayByVariable::addressToRegister(Register r){
     /*
         Get address of cel inside of array indexed by variable
     */
-
+    //Logge::log("Array by variable");
     std::string* indexNameCopy = new std::string(*(this->index));
-    std::string* nameCopy = new std::string(*(this->index));
+    std::string* nameCopy = new std::string(*(this->name));
 
     Value* indexValue = new VarValue(new Variable(indexNameCopy));
     Identifier* array = new Variable(nameCopy);

@@ -110,101 +110,113 @@ InstructionList* SubExpression::calculateToRegister(Register r){
     delete loadLeftToA;
     return inst;
 }
-InstructionList* MulExpression::calculateToRegister(Register r){
+InstructionList* MulExpression::calculateToRegister(Register target){
     /*
-    #####  |a| > |b| oraz b > 0 
-    c = a
-    d = b
-    if a < 0 
-     c = -a
-    else 
-     c = a
-    if b < 0
-     d = -b
-    else 
-     d = b 
-    if b - c > 0 
-     swap a <> b  
-    #####   
-    08 if b == 0 JUMP 14
-    09 if b - (b>>1)<<1 == 0 JUMP 11
-    10 r += a
-    11 a = a<<1
-    12 b = b>>1
-    13 JUMP 8
-    14 return r
-    Registers:
-    rb = a, rc=b rd=|a| 
+    Dla a*b
+    # |a| > |b| and b>0
+    c = a;
+    if c < 0 {c = 0-c;}
+    d = b;
+    if d < 0 {d = 0-d;}
+    if d-c > 0 {a swap b}
+    # discard c,d
+    # multiplication 
+    use r, h(accu), mOne, pOne
+    mOne = -1;
+    pOne = 1;
+    r = 0;
+    while b > 0 {
+        h = ((b shift mOne) shit pOne);
+        if !(b-h == 0){
+            r = r + a;
+        }
+        b = b shift mOne;
+        a = a shift mPlus;
+    }
+    r swap target
     */
+
+    auto a = Register::e;
+    auto b = Register::f;
+    auto c = Register::b;
+    auto d = Register::c;
+    auto r = Register::g;
+    auto h = Register::b;
+    auto mOne = Register::c;
+    auto pOne = Register::d;
+    auto accu = Register::a;
     InstructionList* inst = new InstructionList;
-    // rc = b 
-    auto loadBToC = this->right->valueToRegister(Register::c);
-    // rd = a 
-    auto loadAToB = this->left->valueToRegister(Register::b);
-    
-    inst->splice(inst->end(), *loadBToC);
-    inst->splice(inst->end(), *loadAToB); 
 
-    delete loadBToC;
-    delete loadAToB;
-    // Start: rb = a , rc = b 
-    // End |rb| > |rc|, Using rd = |a| re=|b|
-    // rd = |a|
-    inst->push_back(new Instruction(OptCode::RESET, Register::a));
-    inst->push_back(new Instruction(OptCode::SUB, Register::b));
+    auto loadB = this->right->valueToRegister(b);
+    auto loadA = this->left->valueToRegister(a);
+    
+    inst->splice(inst->end(), *loadB);
+    inst->splice(inst->end(), *loadA); 
+
+    /* c=a; d=b; */
+    inst->push_back(new Instruction(OptCode::RESET, accu));
+    inst->push_back(new Instruction(OptCode::ADD, a));
+    inst->push_back(new Instruction(OptCode::SWAP, c));
+    inst->push_back(new Instruction(OptCode::RESET, accu));
+    inst->push_back(new Instruction(OptCode::ADD, b));
+    inst->push_back(new Instruction(OptCode::SWAP, d));
+    /* if !(c > 0) { c = 0-c;} => c = |a| */
+    inst->push_back(new Instruction(OptCode::SWAP, c));
     inst->push_back(new Instruction(OptCode::JPOS, 3));
-    inst->push_back(new Instruction(OptCode::RESET, Register::a ));
-    inst->push_back(new Instruction(OptCode::ADD, Register::b ));
-    inst->push_back(new Instruction(OptCode::SWAP, Register::d ));
-    // ra = |b|
-    inst->push_back(new Instruction(OptCode::RESET, Register::a));
-    inst->push_back(new Instruction(OptCode::SUB, Register::c));
+    inst->push_back(new Instruction(OptCode::RESET, accu));
+    inst->push_back(new Instruction(OptCode::SUB, a));
+    inst->push_back(new Instruction(OptCode::SWAP, c));
+    /* if !(d>0) { d = 0-d;} => d = |b| */
+    inst->push_back(new Instruction(OptCode::SWAP, d));
     inst->push_back(new Instruction(OptCode::JPOS, 3));
-    inst->push_back(new Instruction(OptCode::RESET, Register::a ));
-    inst->push_back(new Instruction(OptCode::ADD, Register::c ));
-    // ra = |b| - |a| 
-    inst->push_back(new Instruction(OptCode::SUB, Register::d));
-    // if ra > 0 swap rb <> rc
+    inst->push_back(new Instruction(OptCode::RESET, accu));
+    inst->push_back(new Instruction(OptCode::SUB, b));
+    // inst->push_back(new Instruction(OptCode::SWAP, d)); Leave d in accu 
+    /* if !(d - c < 0) { a swap b} => |a| > |b|*/
+    inst->push_back(new Instruction(OptCode::SUB, a));
     inst->push_back(new Instruction(OptCode::JNEG, 4));
-    inst->push_back(new Instruction(OptCode::SWAP, Register::b));
-    inst->push_back(new Instruction(OptCode::SWAP, Register::c));
-    inst->push_back(new Instruction(OptCode::SWAP, Register::b));
-    // a * b where |a| > |b| 
-    // Start: rb = a rc = b
-    // Using: re = helper for last bit of b, rd = -1, re = 1, rf = result
-    // Prepare rd, re, rf
-    inst->push_back(new Instruction(OptCode::RESET, Register::d));
-    inst->push_back(new Instruction(OptCode::DEC, Register::d));
-    inst->push_back(new Instruction(OptCode::RESET, Register::e));
-    inst->push_back(new Instruction(OptCode::INC, Register::e));
-    inst->push_back(new Instruction(OptCode::RESET, Register::f));
-    /// while b != 0 
-    inst->push_back(new Instruction(OptCode::SWAP, Register::c));
+    inst->push_back(new Instruction(OptCode::SWAP, a));
+    inst->push_back(new Instruction(OptCode::SWAP, b));
+    inst->push_back(new Instruction(OptCode::SWAP, a));
+    /* r = 0; mOne = -1; pOne = 1; */
+    inst->push_back(new Instruction(OptCode::RESET, r));
+    inst->push_back(new Instruction(OptCode::RESET, mOne));
+    inst->push_back(new Instruction(OptCode::DEC, mOne));
+    inst->push_back(new Instruction(OptCode::RESET, pOne));
+    inst->push_back(new Instruction(OptCode::INC, pOne));
+    /* while ! b == 0  */
+    inst->push_back(new Instruction(OptCode::SWAP, b));
     inst->push_back(new Instruction(OptCode::JZERO, 18));
-    
-    inst->push_back(new Instruction(OptCode::SWAP, Register::c));
-    inst->push_back(new Instruction(OptCode::RESET, Register::a));
-    inst->push_back(new Instruction(OptCode::ADD, Register::c)); // ra = b 
-    inst->push_back(new Instruction(OptCode::SHIFT, Register::d));
-    inst->push_back(new Instruction(OptCode::SHIFT, Register::e)); // ra = b & 0b111..10
-    inst->push_back(new Instruction(OptCode::SUB, Register::c)); // ra = ((b>>1)<<1) - b
-
-    inst->push_back(new Instruction(OptCode::JZERO, 4)); // Last bit was zero, skip adding to f
-    inst->push_back(new Instruction(OptCode::SWAP, Register::f));
-    inst->push_back(new Instruction(OptCode::ADD, Register::b)); // res += a
-    inst->push_back(new Instruction(OptCode::SWAP, Register::f));
-
-    inst->push_back(new Instruction(OptCode::SWAP, Register::b)); // ra = a
-    inst->push_back(new Instruction(OptCode::SHIFT, Register::e)); // ra = a*2
-    inst->push_back(new Instruction(OptCode::SWAP, Register::b));
-
-    inst->push_back(new Instruction(OptCode::SWAP, Register::c)); // ra = b
-    inst->push_back(new Instruction(OptCode::SHIFT, Register::d)); // ra = b/2
-    inst->push_back(new Instruction(OptCode::SWAP, Register::c));
-    inst->push_back(new Instruction(OptCode::JUMP, -18));
-    
-    inst->push_back(new Instruction(OptCode::SWAP, Register::f));
+    inst->push_back(new Instruction(OptCode::SWAP, b));
+    /* acc is h;  h = 0; h = b; h = h shift mOne; h = h shift pOne; */
+    inst->push_back(new Instruction(OptCode::RESET, accu));
+    inst->push_back(new Instruction(OptCode::ADD, b));
+    inst->push_back(new Instruction(OptCode::SHIFT, mOne));
+    inst->push_back(new Instruction(OptCode::SHIFT, pOne));
+    /* if !( b != h) */
+    inst->push_back(new Instruction(OptCode::SUB, b));
+    inst->push_back(new Instruction(OptCode::JZERO, 4));
+    /* { r = r+a; } */
     inst->push_back(new Instruction(OptCode::SWAP, r));
+    inst->push_back(new Instruction(OptCode::ADD, a));
+    inst->push_back(new Instruction(OptCode::SWAP, r));
+    /* b = b shift mOne (/2) */
+    inst->push_back(new Instruction(OptCode::SWAP, b));
+    inst->push_back(new Instruction(OptCode::SHIFT, mOne));
+    inst->push_back(new Instruction(OptCode::SWAP, b));
+    /* a = a shift mPlus (*2) */ 
+    inst->push_back(new Instruction(OptCode::SWAP, a));
+    inst->push_back(new Instruction(OptCode::SHIFT, pOne));
+    inst->push_back(new Instruction(OptCode::SWAP, a));
+    inst->push_back(new Instruction(OptCode::JUMP, -18));
+    /* end while */
+    /* Swap r with target register */
+    if (r != target){
+        inst->push_back(new Instruction(OptCode::SWAP, r));
+        inst->push_back(new Instruction(OptCode::SWAP, target));
+    }
+    delete loadB;
+    delete loadA;
     return inst;
 }
 InstructionList* DivExpression::calculateToRegister(Register target){
@@ -228,10 +240,10 @@ InstructionList* DivExpression::calculateToRegister(Register target){
             return 0;
         }
     */
-    auto a = Register::b;
-    auto b = Register::c;
-    auto sign = Register::d;
-    auto pOne = Register::e;
+    auto a = Register::d;
+    auto b = Register::e;
+    auto sign = Register::b;
+    auto pOne = Register::c;
     auto mOne = Register::f;
     auto d = Register::g;
     auto r = Register::h;

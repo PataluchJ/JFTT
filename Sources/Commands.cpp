@@ -14,18 +14,18 @@ Assign::~Assign()
 
 InstructionList* Assign::generate()
 {
-	Logger::log("Assign: {");
-	Logger::indent += 1;
-	auto address = this->var->addressToRegister(Register::g);
+	//Logger::log("Assign: {");
+	//Logger::indent += 1;
 	auto val = this->exp->calculateToRegister(Register::h);
+	auto address = this->var->addressToRegister(Register::g);
 
 	auto inst = new InstructionList;
 	inst->splice(inst->end(), *val);
 	inst->splice(inst->end(), *address);
 	inst->push_back(new Instruction(OptCode::SWAP, Register::h));
 	inst->push_back(new Instruction(OptCode::STORE, Register::g));
-	Logger::indent -= 1;
-	Logger::log("}Assign");
+	//Logger::indent -= 1;
+	//Logger::log("}Assign");
 	delete address;
 	delete val; 
 	return inst;
@@ -46,8 +46,8 @@ If::~If()
 InstructionList* If::generate()
 {
 	auto inst = new InstructionList;
-	Logger::log("If:(inBlock, condBlock) {");
-	Logger::indent += 1;
+	//Logger::log("If:(inBlock, condBlock) {");
+	//Logger::indent += 1;
 
 	auto inBlock = commands->generate();
 	auto condBlock = cond->generateCondtion(inBlock->size()+1);
@@ -55,8 +55,8 @@ InstructionList* If::generate()
 	inst->splice(inst->end(), *condBlock);
 	inst->splice(inst->end(), *inBlock);
 
-	Logger::indent -= 1;
-	Logger::log("}If");
+	//Logger::indent -= 1;
+	//Logger::log("}If");
 	
 
 	delete inBlock;
@@ -113,8 +113,8 @@ While::~While()
 InstructionList* While::generate()
 {
 	auto inst = new InstructionList;
-	Logger::log("While{");
-	Logger::indent += 1;
+	//Logger::log("While{");
+	//Logger::indent += 1;
 	auto blockInst = block->generate();
 	auto condInst = cond->generateCondtion(blockInst->size()+2);
 
@@ -122,8 +122,8 @@ InstructionList* While::generate()
 	inst->splice(inst->end(), *blockInst);
 	inst->push_back(new Instruction(OptCode::JUMP, (-1) *( inst->size() + 1)));
 
-	Logger::indent -= 1;
-	Logger::log("}While");
+	//Logger::indent -= 1;
+	//Logger::log("}While");
 	delete blockInst;
 	delete condInst;
 
@@ -182,17 +182,18 @@ Repeat::~Repeat()
 InstructionList* Repeat::generate()
 {
 	auto inst = new InstructionList;
-	Logger::log("Repeat{");
-	Logger::indent += 1;
+	//Logger::log("Repeat{");
+	//Logger::indent += 1;
 	auto blockInst = block->generate();
 	auto condInst = cond->generateCondtion(2);
 	
 	inst->splice(inst->end(), *blockInst);
 	inst->splice(inst->end(), *condInst);
+	inst->push_back(new Instruction(OptCode::JUMP, 2));
 	inst->push_back(new Instruction(OptCode::JUMP, (-1)*(inst->size())));
 
-	Logger::indent -= 1;
-	Logger::log("}Repeat");
+	//Logger::indent -= 1;
+	//Logger::log("}Repeat");
 	delete blockInst;
 	delete condInst;
 

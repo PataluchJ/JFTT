@@ -55,7 +55,15 @@ std::string Instruction::toString(){
 InstructionList* generateNumber(NumberType num, Register r){
     //Logger::log("Generating number " + std::to_string(int(num)));
     InstructionList* inst = new InstructionList;
-
+    if(num <= 7){
+        inst->push_back(new Instruction(OptCode::RESET, r));
+        NumberType currentNum = 0;
+        while (currentNum < num){
+            inst->push_back(new Instruction(OptCode::INC, r));
+            currentNum++;
+        }
+        return inst;
+    }
     Register temp = Register::b;
     if(r != Register::a)
         temp = r;

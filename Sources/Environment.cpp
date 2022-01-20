@@ -64,19 +64,23 @@ void Environment::addToMemory(std::string name, MemVar* var){
 void Environment::finalizeDeclarations(){
     MemVar* var;
     for(auto& name  : variableDeclarations){
+        Logger::log("Declared variable: " + name + " addr " + std::to_string(nextFree));
         var = new MemVar(Environment::nextFree, MemVar::MemVarType::Normal);
         Environment::addToMemory(name, var);
         nextFree += 1;
     }
     for(auto& name  : iteratorDeclarations){
+        Logger::log("Declared iterator: " + name + " addr " + std::to_string(nextFree));
         var = new MemVar(Environment::nextFree, MemVar::MemVarType::Iterator);
         Environment::addToMemory(name, var);
         nextFree += 1;
         var = new MemVar(Environment::nextFree, MemVar::MemVarType::Iterator);
         Environment::addToMemory(name+"@end", var);
+
         nextFree += 1;
     }
     for(auto& arr  : arraysDeclarations){
+        Logger::log("Declared array: " + arr.name + " addr " + std::to_string(nextFree) + " offseted to " + std::to_string(Environment::nextFree-arr.leftBound) );
         if(arr.leftBound > arr.rightBound){
             Logger::err("Failed to declare \"" + arr.name + "\", left bound > right bound.");
             Environment::declarationsFailed = true;
@@ -89,7 +93,7 @@ void Environment::finalizeDeclarations(){
 }
 
 MemVar* Environment::getVariable(std::string name){
-    Logger::log("Accessing variable " + name);
+    //Loggeg("Accessing variable " + name);
     if(variables.find(name) == variables.end()){
         std::string errMessage = "Variable " + name + " is not defined.";
         Logger::err(errMessage);
@@ -99,14 +103,14 @@ MemVar* Environment::getVariable(std::string name){
 }
 
 size_t Environment::laberInstruction(Instruction* inst){
-    Logger::log("Labeling instruction with label " + std::to_string(nextLabel));
+    //Loggeg("Labeling instruction with label " + std::to_string(nextLabel));
     size_t label = nextLabel;
     labels.push_back(inst);
     nextLabel++;
     return label;
 }
 Instruction* Environment::getLabeledInstruction(size_t label){
-    Logger::log("Accessing labeled instruction with label " + std::to_string(label));
+    //Logge::log("Accessing labeled instruction with label " + std::to_string(label));
     return labels[label];
 }
 
