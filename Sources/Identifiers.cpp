@@ -44,7 +44,7 @@ InstructionList* ArrayByVariable::addressToRegister(Register r){
     Identifier* array = new Variable(nameCopy);
 
     Register temp = r;
-    if(r == Register::b)
+    if(temp == Register::b || temp == Register::a)
         temp = Register::c;
 
     auto arrayZeroAddressInst = array->addressToRegister(temp);

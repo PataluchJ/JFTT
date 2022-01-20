@@ -71,15 +71,17 @@ InstructionList* AddExpression::calculateToRegister(Register r){
             return inst;
         }
     }
-    auto inst = this->right->valueToRegister(Register::c);
-    auto loadLeftToA = this->left->valueToRegister(Register::a);
-    //inst->merge(*loadLeftToA);
+    auto inst = this->right->valueToRegister(Register::d);
+    auto loadLeftToA = this->left->valueToRegister(Register::b);
+    
     inst->splice(inst->end(), *loadLeftToA);
-    inst->push_back(new Instruction(OptCode::ADD, Register::c));
+    inst->push_back(new Instruction(OptCode::SWAP, Register::b));
+    inst->push_back(new Instruction(OptCode::ADD, Register::d));
     if(r != Register::a)
         inst->push_back(new Instruction(OptCode::SWAP, r));
 
     delete loadLeftToA;
+    
     return inst;
 }
 InstructionList* SubExpression::calculateToRegister(Register r){
@@ -99,11 +101,12 @@ InstructionList* SubExpression::calculateToRegister(Register r){
             return inst;
         }
     }
-    auto inst = this->right->valueToRegister(Register::c);
-    auto loadLeftToA = this->left->valueToRegister(Register::a);
+    auto inst = this->right->valueToRegister(Register::d);
+    auto loadLeftToA = this->left->valueToRegister(Register::b);
     //inst->merge(*loadLeftToA);
     inst->splice(inst->end(), *loadLeftToA);
-    inst->push_back(new Instruction(OptCode::SUB, Register::c));
+    inst->push_back(new Instruction(OptCode::SWAP, Register::b));
+    inst->push_back(new Instruction(OptCode::SUB, Register::d));
     if(r != Register::a)
         inst->push_back(new Instruction(OptCode::SWAP, r));
 
