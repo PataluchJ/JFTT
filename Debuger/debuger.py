@@ -52,6 +52,7 @@ class Debuger:
         self.memory = {0:8080808080}
         self.memory.pop(0)
         self.autoStep = False 
+        self.focusLocket = True
 
         self.prevRegisters = []
         self.prevInstruction = []
@@ -211,6 +212,8 @@ class Debuger:
         while not self.halted:
             if self.currentInstruction == len(instructions):
                 return
+            if self.focusLocket: 
+                instructionListPosition = self.currentInstruction
             instructionsUpperBound = int(max(0, instructionListPosition - maxOnScreen/2))
             instructionsLowerBound = min(instructionsUpperBound + maxOnScreen, len(instructions))
             index = instructionsUpperBound
@@ -242,8 +245,7 @@ class Debuger:
             # Print user memory
             screen.print_at(" Memory content: ", dataColumnStart, line)
             line += 1
-            for k in self.memory.keys():
-                v = self.memory[k]
+            for k,v in sorted(self.memory.items()):
                 screen.print_at(" " + str(k) + ": " + str(v), dataColumnStart, line)
                 line += 1
             ev = screen.get_key()
@@ -292,6 +294,8 @@ class Debuger:
             if ev in (ord('c'), ord('C')):
                 self.autoStep = True 
             if ev in (ord('q'), ord('Q')):
+                self.halted = True 
+            if ev in (ord('z'), ord('Z')):
                 self.halted = True 
             screen.refresh()
             screen.clear_buffer(fg=self.COLOUR_WHITE, bg=self.COLOUR_BLACK, attr=2, w=screen.width, h=screen.height)
