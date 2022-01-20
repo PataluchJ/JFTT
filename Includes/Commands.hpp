@@ -4,6 +4,7 @@
 #include "Nodes.hpp"
 #include "Conditions.hpp"
 #include "Expressions.hpp"
+#include "Identifiers.hpp"
 
 class Assign : public Command {
 public:
@@ -53,7 +54,11 @@ public:
 	Commands* block;
 
 	Value* iterValue;
+	Identifier* rightBoundIden;
+	Value* rightBoundVal;
 	Assign* setIteratorStartValue;
+	Assign* setIteratorRightBound;
+	Value* rightBound;
 	Assign* increment;
 	Condition* cond;
 	While* loop;

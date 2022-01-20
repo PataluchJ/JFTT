@@ -73,10 +73,8 @@ InstructionList* Greater::generateCondtion(size_t jumpOutOffset)
 InstructionList* NotLesser::generateCondtion(size_t jumpOutOffset)
 {
 	/* left >= right
-	rc <- right
-	ra <- left
-	SUB rc // ra = left-right ! < 0
-	JNEG out
+	ra = left-right
+	if !(ra < 0)
 	*/
 	auto inst = Condition::subtractToRegister(left, right);
 	inst->push_back(new Instruction(OptCode::JNEG, jumpOutOffset));

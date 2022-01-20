@@ -72,6 +72,9 @@ void Environment::finalizeDeclarations(){
         var = new MemVar(Environment::nextFree, MemVar::MemVarType::Iterator);
         Environment::addToMemory(name, var);
         nextFree += 1;
+        var = new MemVar(Environment::nextFree, MemVar::MemVarType::Iterator);
+        Environment::addToMemory(name+"@end", var);
+        nextFree += 1;
     }
     for(auto& arr  : arraysDeclarations){
         if(arr.leftBound > arr.rightBound){

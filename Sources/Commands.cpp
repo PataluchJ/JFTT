@@ -138,13 +138,18 @@ For::For(Identifier* iter, Value* iStart, Value* iEnd, Commands* block, bool rev
 	this->block = block;
 	this->reverse = reverse;
 	this->setIteratorStartValue = new Assign(iter, new ConstExpression(iStart));
+
+	std::string* rightBoundVarName = new std::string(*(iter->name)+"@end");
+	this->rightBoundIden = new Variable(rightBoundVarName);
+	this->rightBoundVal = new VarValue(this->rightBoundIden);
+	this->setIteratorRightBound = new Assign(this->rightBoundIden, new ConstExpression(this->iEnd));
 	if(reverse) {
 		this->increment = new Assign(iter, new AddExpression(iterValue, new ConstValue(-1)));
-		this->cond = new NotLesser(iterValue, iEnd);
+		this->cond = new NotLesser(iterValue, this->rightBoundVal);
 	}
 	else {
 		this->increment = new Assign(iter, new AddExpression(iterValue, new ConstValue(1)));
-		this->cond = new NotGreater(iterValue, iEnd);
+		this->cond = new NotGreater(iterValue, this->rightBoundVal);
 	}
 	this->block->add(this->increment);
 	this->loop = new While(cond, block);
@@ -157,6 +162,7 @@ For::~For(){
 
 InstructionList* For::generate(){
 	auto inst = this->setIteratorStartValue->generate();
+	inst->splice(inst->end(), *(this->setIteratorRightBound->generate()));
 	inst->splice(inst->end(), *(this->loop->generate()));
 	return inst;
 }
