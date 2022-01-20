@@ -87,7 +87,7 @@ void Environment::finalizeDeclarations(){
         }
         var = new MemVar(Environment::nextFree-arr.leftBound, arr.leftBound, arr.rightBound);
         Environment::addToMemory(arr.name, var);
-        nextFree += arr.rightBound-arr.leftBound;
+        nextFree += 1+(arr.rightBound-arr.leftBound);
     }
 
 }
