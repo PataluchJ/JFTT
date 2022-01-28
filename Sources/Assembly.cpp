@@ -51,63 +51,60 @@ std::string Instruction::toString(){
     
     return ret;
 }
-
 InstructionList* generateNumber(NumberType num, Register r){
-    //Logger::log("Generating number " + std::to_string(int(num)));
     InstructionList* inst = new InstructionList;
-    if(num <= 7 && num >= -7){
-        auto TP = OptCode::INC;
-        if(num < 0){
-            TP = OptCode::DEC;
-            num *= -1;
-        }
-        inst->push_back(new Instruction(OptCode::RESET, r));
-        NumberType currentNum = 0;
-        while (currentNum < num){
-            inst->push_back(new Instruction(TP, r));
-            currentNum++;
-        }
-        return inst;
-    }
-    Register temp = Register::b;
-    if(r != Register::a)
-        temp = r;
-    // Put 1 in temp register 
-    inst->push_back(new Instruction(OptCode::RESET, Register::a));
-    inst->push_back(new Instruction(OptCode::RESET, temp));
-    inst->push_back(new Instruction(OptCode::INC, temp));
-
-    char* helper = new char[sizeof(NumberType)*8+1];
-    int helper_index = 0;
-    bool neg = num < 0;
-    if(neg) {
+    //Logger::log("Generating " + std::to_string(num));
+    auto signedINC = OptCode::INC;
+    if(num < 0){
+        signedINC = OptCode::DEC;
         num *= -1;
     }
-    while(num > 0){
-        helper[helper_index] = num & 1;
-        num >>= 1;
-        helper_index++;
-    }
-    helper_index--;
-    while(helper_index >= 0) {
-        if(helper[helper_index] == 1){
-            if(neg)
-                inst->push_back(new Instruction(OptCode::DEC, Register::a));
-            else
-                inst->push_back(new Instruction(OptCode::INC, Register::a));
+
+    if(num <= 7 && num >= -7){
+        inst->push_back(new Instruction(OptCode::RESET, r));
+        while(num > 0){
+            num--;
+            inst->push_back(new Instruction(signedINC, r));
         }
-        inst->push_back(new Instruction(OptCode::SHIFT,temp));
-        helper_index--;
+        //Logger::log("generated short...");
+        return inst;
     }
+
+    auto temp = r;
+    if(r == Register::a)
+        temp = Register::b;
+
+    inst->push_back(new Instruction(OptCode::RESET, temp));
+    inst->push_back(new Instruction(OptCode::INC, temp));
+    inst->push_back(new Instruction(OptCode::INC, temp));
+    inst->push_back(new Instruction(OptCode::INC, temp));
+
+    NumberType mask = 0b111;
+    int helper[64/3+1];
+    int hIndex = 0;
+
+    while(num > 0){
+        helper[hIndex] = num&mask;
+        hIndex++;
+        num >>= 3;
+    }
+    hIndex--;
+    inst->push_back(new Instruction(OptCode::RESET, Register::a));
+    while(hIndex > -1){
+        while(helper[hIndex] > 0){
+            inst->push_back(new Instruction(signedINC, Register::a));
+            helper[hIndex]--;
+        }
+        hIndex--;
+        inst->push_back(new Instruction(OptCode::SHIFT, temp));
+    }
+    //Logger::log("generated long...");
     inst->pop_back();
-    
-    if(r != Register::a)
+    if(r != Register::a){
         inst->push_back(new Instruction(OptCode::SWAP, r));
-    
-    delete[] helper;
+    }
     return inst;
 }
-
 void deleteInstructionList(InstructionList* list){
     for(auto i : *list){
         delete i;
