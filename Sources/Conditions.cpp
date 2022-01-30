@@ -61,13 +61,9 @@ InstructionList* Greater::generateCondtion(size_t jumpOutOffset)
 	JPOS 2
 	JUMP out
 	*/
-	Logger::log("Greater{");
-	Logger::indent += 1;
 	auto inst = Condition::subtractToRegister(left, right);
 	inst->push_back(new Instruction(OptCode::JPOS, 2));
 	inst->push_back(new Instruction(OptCode::JUMP, jumpOutOffset));
-	Logger::indent -= 1;
-	Logger::log("}Greater");
 	return inst;
 }
 InstructionList* NotLesser::generateCondtion(size_t jumpOutOffset)

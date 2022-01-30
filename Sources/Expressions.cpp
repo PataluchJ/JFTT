@@ -250,7 +250,7 @@ InstructionList* DivExpression::calculateToRegister(Register target){
     auto mOne = Register::f;
     auto d = Register::g;
     auto r = Register::h;
-
+    
     /*  Load a and b */
     inst->splice(inst->begin(), *(right->valueToRegister(b)));
     inst->splice(inst->begin(), *(left->valueToRegister(a)));
@@ -259,7 +259,7 @@ InstructionList* DivExpression::calculateToRegister(Register target){
     inst->push_back(new Instruction(OptCode::JZERO, 2));
     inst->push_back(new Instruction(OptCode::JUMP, 3));
     inst->push_back(new Instruction(OptCode::RESET, r));
-    inst->push_back(new Instruction(OptCode::JUMP, 58));
+    inst->push_back(new Instruction(OptCode::JUMP, 59));
     inst->push_back(new Instruction(OptCode::SWAP, b));
     /*  sign = 1; pOne = 1;  mOne = -1; r = 0;*/
     inst->push_back(new Instruction(OptCode::RESET, sign)); // Block size = 7 | 51
@@ -328,9 +328,10 @@ InstructionList* DivExpression::calculateToRegister(Register target){
     /* } while */
     /* Set sigh */
     inst->push_back(new Instruction(OptCode::SWAP, sign));
-    inst->push_back(new Instruction(OptCode::JPOS, 4));
+    inst->push_back(new Instruction(OptCode::JPOS, 5));
     inst->push_back(new Instruction(OptCode::RESET, Register::a));
     inst->push_back(new Instruction(OptCode::SUB, r));
+    inst->push_back(new Instruction(OptCode::DEC, Register::a));
     inst->push_back(new Instruction(OptCode::SWAP, r));
     
     /* Put result in desired register */

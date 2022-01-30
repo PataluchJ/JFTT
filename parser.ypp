@@ -124,6 +124,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 	yyparse();
+    std::cout << "Compiling " << argv[1] << " to file " << argv[2] << "\n";
     Environment::finalizeDeclarations();
     if(Environment::declarationsFailed){
         std::cout << "Unable to declare all variables. Compilation failed.\n";
