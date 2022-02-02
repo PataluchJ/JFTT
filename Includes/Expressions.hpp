@@ -3,6 +3,7 @@
 
 #include "Nodes.hpp"
 #include "Value.hpp"
+#include <math.h>
 
 class ConstExpression : public Expression {
 public:
@@ -37,6 +38,9 @@ public:
     MulExpression(Value* left, Value* right);
     ~MulExpression();
     InstructionList* calculateToRegister(Register r) override;
+    InstructionList* generateForBothConst(Register r);
+    InstructionList* generateForOneConst(Register r);
+    InstructionList* generateForNoConst(Register r);
 };
 
 class DivExpression : public Expression {
@@ -46,6 +50,9 @@ public:
     DivExpression(Value* left, Value* right);
     ~DivExpression();
     InstructionList* calculateToRegister(Register r) override;
+    InstructionList* generateForBothConst(Register r);
+    //InstructionList* generateForOneConst(Register r);
+    InstructionList* generateForNoConst(Register r);
 };
 
 class ModExpression : public Expression {
@@ -55,6 +62,9 @@ public:
     ModExpression(Value* left, Value* right);
     ~ModExpression();
     InstructionList* calculateToRegister(Register r) override;
+    InstructionList* generateForBothConst(Register r);
+    InstructionList* generateForTwoPow(Register r);
+    InstructionList* generateForNoConst(Register r);
 };
 
 #endif

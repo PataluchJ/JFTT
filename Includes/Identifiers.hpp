@@ -16,6 +16,7 @@ public:
     Variable(StringType name);
     ~Variable();
     InstructionList* addressToRegister(Register r) override;
+    bool isIterator() override;
 };
 class ArrayByVariable : public Identifier {
 public: 
@@ -23,6 +24,7 @@ public:
     ArrayByVariable(StringType name, StringType index);
     ~ArrayByVariable();
     InstructionList* addressToRegister(Register r) override;
+    bool isIterator() override;
 };
 
 class ArrayByConst : public Identifier {
@@ -31,6 +33,7 @@ public:
     ArrayByConst(StringType name, NumberType index);
     ~ArrayByConst();
     InstructionList* addressToRegister(Register r) override;
+    bool isIterator() override;
 };
 
 

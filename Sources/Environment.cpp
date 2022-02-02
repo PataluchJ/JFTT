@@ -9,6 +9,14 @@ std::list<std::string> Environment::variableDeclarations;
 std::list<std::string> Environment::iteratorDeclarations;
 std::list<Environment::ArrayDeclaration> Environment::arraysDeclarations;
 bool Environment::declarationsFailed = false;
+bool Environment::errorDeclared = false;
+
+void Environment::declareError(){
+    Environment::errorDeclared = true;
+}
+bool Environment::compilationFailed(){
+    return Environment::errorDeclared;
+}
 
 Environment::ArrayDeclaration::ArrayDeclaration(std::string name, NumberType left, NumberType right) 
     : name(name), leftBound(left), rightBound(right) {}

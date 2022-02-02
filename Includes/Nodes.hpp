@@ -41,6 +41,7 @@ class Identifier : public Node{
 public:
     StringType name;
     virtual InstructionList* addressToRegister(Register r) = 0;
+    virtual bool isIterator() = 0;
 };
 
 class Value : public Node{

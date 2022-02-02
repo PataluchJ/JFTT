@@ -84,6 +84,7 @@ InstructionList* AddExpression::calculateToRegister(Register r){
     
     return inst;
 }
+
 InstructionList* SubExpression::calculateToRegister(Register r){
     if(this->left->isConst() && this->right->isConst()){
         NumberType value = ((ConstValue*)left)->value - ((ConstValue*)right)->value;
@@ -114,6 +115,57 @@ InstructionList* SubExpression::calculateToRegister(Register r){
     return inst;
 }
 InstructionList* MulExpression::calculateToRegister(Register target){
+    if(this->left->isConst() && this->right->isConst())
+        return generateForBothConst(target);
+    if(this->left->isConst() || this->right->isConst())
+        return generateForOneConst(target);
+    return generateForNoConst(target);
+}
+
+InstructionList* MulExpression::generateForBothConst(Register target){
+    NumberType value = ((ConstValue*)left)->value * ((ConstValue*)right)->value;
+    return generateNumber(value, target);
+}
+InstructionList* MulExpression::generateForOneConst(Register target){
+    auto constant = this->left->isConst() ? left : right;
+    auto var = this->left->isConst() ? right : left;
+    auto value = ((ConstValue*)constant)->value;
+
+    Register pOne = Register::b;
+    Register x = Register::c;
+
+    auto inst = var->valueToRegister(x);
+    inst->push_back(new Instruction(OptCode::RESET, pOne));
+    inst->push_back(new Instruction(OptCode::INC, pOne));
+    inst->push_back(new Instruction(OptCode::RESET, Register::a));
+
+    NumberType mask = 0b1;
+    bool sumInAcu = true;
+    while(mask <= value){
+        if((value&mask) > 0){
+            // Add x to sum
+            if(!sumInAcu)
+                inst->push_back(new Instruction(OptCode::SWAP, x));
+            inst->push_back(new Instruction(OptCode::ADD, x));
+            sumInAcu = true;
+        }
+        // x <<= 1 
+        mask <<= 1;
+        if(sumInAcu)
+            inst->push_back(new Instruction(OptCode::SWAP, x));
+        inst->push_back(new Instruction(OptCode::SHIFT, pOne));
+        sumInAcu = false;
+    }
+    if(target != x){
+        if(!sumInAcu)
+            inst->push_back(new Instruction(OptCode::SWAP, x));
+        inst->push_back(new Instruction(OptCode::SWAP, target));
+    }
+    
+    return inst;
+
+}
+InstructionList* MulExpression::generateForNoConst(Register target){
     /*
     Dla a*b
     # |a| > |b| and b>0
@@ -222,7 +274,27 @@ InstructionList* MulExpression::calculateToRegister(Register target){
     delete loadA;
     return inst;
 }
+
+
 InstructionList* DivExpression::calculateToRegister(Register target){
+    if(this->left->isConst() && this->right->isConst())
+        return generateForBothConst(target);
+    //if(this->left->isConst() || this->right->isConst())
+    //    return generateForOneConst(target);
+    return generateForNoConst(target);
+}
+
+InstructionList* DivExpression::generateForBothConst(Register target){
+    NumberType l = ((ConstValue*)left)->value;
+    NumberType r = ((ConstValue*)right)->value;
+    NumberType d = l / r;
+    if (d < 0){
+        if(d*r != l)
+            d -= 1;
+    }
+    return generateNumber(d, target);
+}
+InstructionList* DivExpression::generateForNoConst(Register target){
     InstructionList* inst = new InstructionList;
     /*
         if (b != 0){
@@ -328,11 +400,13 @@ InstructionList* DivExpression::calculateToRegister(Register target){
     /* } while */
     /* Set sigh */
     inst->push_back(new Instruction(OptCode::SWAP, sign));
-    inst->push_back(new Instruction(OptCode::JPOS, 5));
+    inst->push_back(new Instruction(OptCode::JPOS, 7));
     inst->push_back(new Instruction(OptCode::RESET, Register::a));
     inst->push_back(new Instruction(OptCode::SUB, r));
-    inst->push_back(new Instruction(OptCode::DEC, Register::a));
     inst->push_back(new Instruction(OptCode::SWAP, r));
+    inst->push_back(new Instruction(OptCode::SWAP, a));
+    inst->push_back(new Instruction(OptCode::JZERO, 2));
+    inst->push_back(new Instruction(OptCode::DEC, r));
     
     /* Put result in desired register */
     if(target != r){
@@ -341,7 +415,97 @@ InstructionList* DivExpression::calculateToRegister(Register target){
     }
     return inst;
 }
+
 InstructionList* ModExpression::calculateToRegister(Register target){
+    if(this->left->isConst() && this->right->isConst())
+        return generateForBothConst(target);
+    if(this->right->isConst()){
+        auto v = ((ConstValue*)(this->right))->value;
+        v = v < 0 ? -v : v;
+        NumberType mask = 0b1;
+        while(mask <= v){
+            mask <<= 1;
+        }
+        mask >>= 1;
+        if(mask == v){
+            return generateForTwoPow(target);
+        }
+    }
+    return generateForNoConst(target);
+}
+
+InstructionList* ModExpression::generateForBothConst(Register target) {
+    NumberType l = ((ConstValue*)left)->value;
+    NumberType r = ((ConstValue*)right)->value;
+    bool lNeg = l < 0;
+    l = l < 0 ? -l : l;
+    bool rNeg = r < 0;
+    r = r < 0 ? -r : r;
+    NumberType value = l % r;
+    if(lNeg)
+        value = r - value;
+    if(rNeg)
+        value = 0-value;
+    return generateNumber(value, target);
+}
+InstructionList* ModExpression::generateForTwoPow(Register target){
+    auto x = Register::b;
+    auto shiftVal = Register::c;
+    auto res = Register::e;
+    auto shiftValNeg = Register::d;
+    
+    bool vNeg = false;
+    auto v = ((ConstValue*)(this->right))->value;
+    if (v < 0){
+        v = -v;
+        vNeg = true;
+    }
+    NumberType mask = 0b1;
+    NumberType shifts = 0;
+    while(mask <= v){
+        mask <<= 1;
+        shifts++;
+    }
+
+    shifts -= 1;
+    auto inst = generateNumber(shifts, shiftVal);
+    auto negShift = generateNumber(-shifts, shiftValNeg);
+    auto xToReg = left->valueToRegister(x);
+    
+    auto constVal = generateNumber(v, res);
+    constVal->push_back(new Instruction(OptCode::SWAP, x));
+    constVal->push_back(new Instruction(OptCode::SWAP, res));
+    constVal->push_back(new Instruction(OptCode::ADD, x));
+    constVal->push_back(new Instruction(OptCode::SWAP, x));
+
+    inst->splice(inst->end(), *(negShift));
+    inst->splice(inst->end(), *(xToReg));
+    inst->push_back(new Instruction(OptCode::RESET, Register::a));
+    inst->push_back(new Instruction(OptCode::ADD, x));
+    inst->push_back(new Instruction(OptCode::SHIFT, shiftValNeg));
+    inst->push_back(new Instruction(OptCode::SHIFT, shiftVal));
+    inst->push_back(new Instruction(OptCode::SWAP, x));
+    inst->push_back(new Instruction(OptCode::SUB, x));
+    inst->push_back(new Instruction(OptCode::JNEG, 2));
+    inst->push_back(new Instruction(OptCode::JUMP, constVal->size()+1));
+    inst->splice(inst->end(), *(constVal));
+
+    if(vNeg){
+        inst->push_back(new Instruction(OptCode::SWAP, x));
+        inst->push_back(new Instruction(OptCode::RESET, Register::a));
+        inst->push_back(new Instruction(OptCode::SUB, x));
+    }
+    if(target != Register::a){
+        inst->push_back(new Instruction(OptCode::SWAP, target));
+    }
+
+    delete xToReg;
+    delete negShift;
+    delete constVal;
+    return inst;
+
+}
+InstructionList* ModExpression::generateForNoConst(Register target){
     InstructionList* inst = new InstructionList;
     // Registers
     auto a = Register::b;
@@ -362,27 +526,26 @@ InstructionList* ModExpression::calculateToRegister(Register target){
     inst->push_back(new Instruction(OptCode::RESET, a));
     inst->push_back(new Instruction(OptCode::JUMP, 56));
     inst->push_back(new Instruction(OptCode::SWAP, b));
-    /*  sign = 1; pOne = 1;  mOne = -1; r = 0;*/
+    /*  sign = 0; pOne = 1;  mOne = -1; r = 0;*/
     inst->push_back(new Instruction(OptCode::RESET, sign)); // Block size = 7 | 51
-    inst->push_back(new Instruction(OptCode::INC, sign));
     inst->push_back(new Instruction(OptCode::RESET, pOne));
     inst->push_back(new Instruction(OptCode::INC, pOne));
     inst->push_back(new Instruction(OptCode::RESET, mOne));
     inst->push_back(new Instruction(OptCode::DEC, mOne));
     inst->push_back(new Instruction(OptCode::RESET, r));
-    /* if !(-a < 0) { a = -a; sign = -1;} */
+    /* if !(-a < 0) { a = -a; sign = 1;} */
     inst->push_back(new Instruction(OptCode::RESET, Register::a)); // Block size = 6
     inst->push_back(new Instruction(OptCode::SUB, a)); // acc = -a 
-    inst->push_back(new Instruction(OptCode::JNEG, 2)); // if (acc < 0) jump out
-    inst->push_back(new Instruction(OptCode::SWAP, a)); // swap acc=-a with a 
-    /* if !(-b < 0) { b = -b; sign = 0 - sign} */
+    inst->push_back(new Instruction(OptCode::JNEG, 3)); // if (acc < 0) jump out
+    inst->push_back(new Instruction(OptCode::SWAP, a)); // swap acc=-a with a
+    inst->push_back(new Instruction(OptCode::INC, sign));
+    /* if !(-b < 0) { b = -b; sign = sign + 2} */
     inst->push_back(new Instruction(OptCode::RESET, Register::a)); // Block size = 7 || 38
     inst->push_back(new Instruction(OptCode::SUB, b)); // acc = -b 
-    inst->push_back(new Instruction(OptCode::JNEG, 5)); // if (acc < 0) jump out
+    inst->push_back(new Instruction(OptCode::JNEG, 4)); // if (acc < 0) jump out
     inst->push_back(new Instruction(OptCode::SWAP, b)); // swap acc=-b with b
-    inst->push_back(new Instruction(OptCode::RESET, Register::a)); 
-    inst->push_back(new Instruction(OptCode::DEC, sign)); //
-    inst->push_back(new Instruction(OptCode::DEC, sign)); //| sign = -1
+    inst->push_back(new Instruction(OptCode::INC, sign)); //
+    inst->push_back(new Instruction(OptCode::INC, sign)); //| sign += 2
     /* d = b */
     inst->push_back(new Instruction(OptCode::RESET, Register::a)); // Block size = 3
     inst->push_back(new Instruction(OptCode::ADD, b));
@@ -425,17 +588,43 @@ InstructionList* ModExpression::calculateToRegister(Register target){
     inst->push_back(new Instruction(OptCode::SWAP, b));
     inst->push_back(new Instruction(OptCode::JUMP, -16));
     /* } while */
-    /* Set sigh */
+    /*
+        Sign:
+        = 0 when a >= 0 and b >= 0: return 
+        = 1 when a < 0 and b >0: res = b - res; 
+        = 2 when a >= 0 and b < 0: res = 0 - res
+        = 3 wgen a < 0 and b < 0: res = b - res and res = 0 - res
+    */
     inst->push_back(new Instruction(OptCode::SWAP, sign));
-    inst->push_back(new Instruction(OptCode::JPOS, 4));
+    inst->push_back(new Instruction(OptCode::JZERO, 21)); // jump out
+    /* Sign == 1 */
+    inst->push_back(new Instruction(OptCode::DEC, Register::a));
+    inst->push_back(new Instruction(OptCode::JPOS, 6)); 
     inst->push_back(new Instruction(OptCode::RESET, Register::a));
-    inst->push_back(new Instruction(OptCode::SUB, a));
+    inst->push_back(new Instruction(OptCode::ADD, d)); // acc = b 
+    inst->push_back(new Instruction(OptCode::SUB, a)); // acc = b - r
+    inst->push_back(new Instruction(OptCode::SWAP, a));// r = b-r
+    inst->push_back(new Instruction(OptCode::JUMP, 14)); // jump out
+    /* sign == 2 */
+    inst->push_back(new Instruction(OptCode::DEC, Register::a));
+    inst->push_back(new Instruction(OptCode::JPOS, 5)); 
+    inst->push_back(new Instruction(OptCode::RESET, Register::a));
+    inst->push_back(new Instruction(OptCode::SUB, a)); // acc = 0 - r
+    inst->push_back(new Instruction(OptCode::SWAP, a));// r = -r
+    inst->push_back(new Instruction(OptCode::JUMP, 8)); // jump out
+    /* sign == 3 */
+    inst->push_back(new Instruction(OptCode::RESET, Register::a));
+    inst->push_back(new Instruction(OptCode::ADD, d)); // acc = b 
+    inst->push_back(new Instruction(OptCode::SUB, a)); // acc = b - r
     inst->push_back(new Instruction(OptCode::SWAP, a));
-    
+    inst->push_back(new Instruction(OptCode::RESET, Register::a));
+    inst->push_back(new Instruction(OptCode::SUB, a)); // acc = 0 - r
+    inst->push_back(new Instruction(OptCode::SWAP, a));
     /* Put result in desired register */
     if(target != a){
         inst->push_back(new Instruction(OptCode::SWAP, a));
         inst->push_back(new Instruction(OptCode::SWAP, target));
     }
+
     return inst;
 }

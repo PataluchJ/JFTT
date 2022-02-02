@@ -41,6 +41,8 @@ class Environment {
     static std::list<ArrayDeclaration> arraysDeclarations;
     
     static void addToMemory(std::string name, MemVar* var);
+
+    static bool errorDeclared;
 public:
     static bool declarationsFailed;
 
@@ -53,6 +55,9 @@ public:
 
     static size_t laberInstruction(Instruction* inst);
     static Instruction* getLabeledInstruction(size_t label);
+
+    static void declareError();
+    static bool compilationFailed();
 };
 
 #endif

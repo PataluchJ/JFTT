@@ -10,7 +10,8 @@ class Assign : public Command {
 public:
 	Identifier* var;
 	Expression* exp;
-	Assign(Identifier* var, Expression* value);
+	bool forIteratorHelper;
+	Assign(Identifier* var, Expression* value, int line);
 	~Assign();
 	InstructionList* generate() override;
 };
@@ -20,7 +21,7 @@ public:
 	Condition* cond;
 	Commands* commands;
 
-	If(Condition* cond, Commands* commands);
+	If(Condition* cond, Commands* commands, int line);
 	~If();
 	InstructionList* generate() override;
 };
@@ -31,7 +32,7 @@ public:
 	Commands* ifBlock;
 	Commands* elseBlock;
 
-	If_Else(Condition* cond, Commands* ifBlock, Commands* elseBlock);
+	If_Else(Condition* cond, Commands* ifBlock, Commands* elseBlock, int line);
 	~If_Else();
 	InstructionList* generate() override;
 }; 
@@ -41,7 +42,7 @@ public:
 	Condition* cond;
 	Commands* block;
 
-	While(Condition* cond, Commands* commands);
+	While(Condition* cond, Commands* commands, int line);
 	~While();
 	InstructionList* generate() override;
 };
@@ -64,7 +65,7 @@ public:
 	While* loop;
 
 	bool reverse;
-	For(Identifier* iter, Value* iStart, Value* iEnd, Commands* block, bool reverse = false);
+	For(Identifier* iter, Value* iStart, Value* iEnd, Commands* block, int line, bool reverse = false);
 	~For();
 	InstructionList* generate() override;
 };
@@ -74,7 +75,7 @@ public:
 	Condition* cond;
 	Commands* block;
 
-	Repeat(Condition* cond, Commands* commands);
+	Repeat(Condition* cond, Commands* commands, int line);
 	~Repeat();
 	InstructionList* generate() override;
 };
@@ -82,7 +83,7 @@ public:
 class Read : public Command {
 public:
 	Identifier* id;
-	Read(Identifier* id);
+	Read(Identifier* id, int line);
 	~Read();
 	InstructionList* generate() override;
 };
@@ -90,7 +91,7 @@ public:
 class Write : public Command {
 public:
 	Value* val;
-	Write(Value* val);
+	Write(Value* val, int line);
 	~Write();
 	InstructionList* generate() override;
 };

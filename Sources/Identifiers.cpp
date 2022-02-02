@@ -13,7 +13,18 @@ ArrayByConst::ArrayByConst(StringType name, NumberType index){
     this->name = name;
     this->index = index;
 }
-
+bool Variable::isIterator(){
+    auto mem = Environment::getVariable(*name);
+    return (mem->type == MemVar::MemVarType::Iterator);
+}
+bool ArrayByVariable::isIterator(){
+    auto mem = Environment::getVariable(*name);
+    return (mem->type == MemVar::MemVarType::Iterator);
+}
+bool ArrayByConst::isIterator(){
+    auto mem = Environment::getVariable(*name);
+    return (mem->type == MemVar::MemVarType::Iterator);
+}
 Variable::~Variable(){
     delete name;
 }
