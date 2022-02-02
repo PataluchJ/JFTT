@@ -289,8 +289,9 @@ InstructionList* MulExpression::generateForNoConst(Register target){
     inst->push_back(new Instruction(OptCode::SWAP, a));
     inst->push_back(new Instruction(OptCode::JNEG, 3));
     inst->push_back(new Instruction(OptCode::SWAP, a));
-    inst->push_back(new Instruction(OptCode::JUMP, 6));
+    inst->push_back(new Instruction(OptCode::JUMP, 7));
     inst->push_back(new Instruction(OptCode::SWAP, a));
+    inst->push_back(new Instruction(OptCode::RESET, accu));
     inst->push_back(new Instruction(OptCode::SUB, a));
     inst->push_back(new Instruction(OptCode::SWAP, a));
     inst->push_back(new Instruction(OptCode::DEC, sign));
@@ -299,8 +300,9 @@ InstructionList* MulExpression::generateForNoConst(Register target){
     inst->push_back(new Instruction(OptCode::SWAP, b));
     inst->push_back(new Instruction(OptCode::JNEG, 3));
     inst->push_back(new Instruction(OptCode::SWAP, b));
-    inst->push_back(new Instruction(OptCode::JUMP, 7));
+    inst->push_back(new Instruction(OptCode::JUMP, 8));
     inst->push_back(new Instruction(OptCode::SWAP, b));
+    inst->push_back(new Instruction(OptCode::RESET, accu));
     inst->push_back(new Instruction(OptCode::SUB, b));
     inst->push_back(new Instruction(OptCode::SWAP, b));
     inst->push_back(new Instruction(OptCode::RESET, accu));
