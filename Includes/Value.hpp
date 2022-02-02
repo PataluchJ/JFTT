@@ -16,6 +16,7 @@ public:
     ~ConstValue();
     InstructionList* valueToRegister(Register r) override;
     bool isConst() override;
+    bool isInit() override;
 };
 
 class VarValue : public Value{
@@ -25,6 +26,7 @@ public:
     ~VarValue();
     InstructionList* valueToRegister(Register r) override;
     bool isConst() override;
+    bool isInit() override;
 };
 
 #endif

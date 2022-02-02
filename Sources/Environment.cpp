@@ -5,6 +5,7 @@ std::vector<Instruction*> Environment::labels;
 size_t Environment::nextFree = 0;
 size_t Environment::nextLabel = 0;
 MemVar* Environment::undef = new MemVar(false,true,0);
+std::vector<std::string> Environment::iteratorScope;
 std::list<std::string> Environment::variableDeclarations;
 std::list<std::string> Environment::iteratorDeclarations;
 std::list<Environment::ArrayDeclaration> Environment::arraysDeclarations;
@@ -72,13 +73,13 @@ void Environment::addToMemory(std::string name, MemVar* var){
 void Environment::finalizeDeclarations(){
     MemVar* var;
     for(auto& name  : variableDeclarations){
-        Logger::log("Declared variable: " + name + " addr " + std::to_string(nextFree));
+        //Logger::log("Declared variable: " + name + " addr " + std::to_string(nextFree));
         var = new MemVar(Environment::nextFree, MemVar::MemVarType::Normal);
         Environment::addToMemory(name, var);
         nextFree += 1;
     }
     for(auto& name  : iteratorDeclarations){
-        Logger::log("Declared iterator: " + name + " addr " + std::to_string(nextFree));
+        //Logger::log("Declared iterator: " + name + " addr " + std::to_string(nextFree));
         var = new MemVar(Environment::nextFree, MemVar::MemVarType::Iterator);
         Environment::addToMemory(name, var);
         nextFree += 1;
@@ -88,7 +89,7 @@ void Environment::finalizeDeclarations(){
         nextFree += 1;
     }
     for(auto& arr  : arraysDeclarations){
-        Logger::log("Declared array: " + arr.name + " addr " + std::to_string(nextFree) + " offseted to " + std::to_string(Environment::nextFree-arr.leftBound) );
+        //Logger::log("Declared array: " + arr.name + " addr " + std::to_string(nextFree) + " offseted to " + std::to_string(Environment::nextFree-arr.leftBound) );
         if(arr.leftBound > arr.rightBound){
             Logger::err("Failed to declare \"" + arr.name + "\", left bound > right bound.");
             Environment::declarationsFailed = true;
@@ -103,8 +104,7 @@ void Environment::finalizeDeclarations(){
 MemVar* Environment::getVariable(std::string name){
     //Loggeg("Accessing variable " + name);
     if(variables.find(name) == variables.end()){
-        std::string errMessage = "Variable " + name + " is not defined.";
-        Logger::err(errMessage);
+        Environment::errorDeclared = true;
         return undef;
     }
     return variables[name];
@@ -122,6 +122,15 @@ Instruction* Environment::getLabeledInstruction(size_t label){
     return labels[label];
 }
 
+void Environment::initVar(std::string name){
+    if(variables.find(name) == variables.end()){
+        Environment::errorDeclared = true;
+    }
+    variables[name]->initialized = true;
+}
+
 MemVar::MemVar() {} 
 MemVar::MemVar(bool init, bool err, size_t address) 
-    : initialized(init), error(err), address(address) {}
+    : initialized(init), error(err), address(address) {
+        type = MemVarType::Normal;
+    }

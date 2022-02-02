@@ -11,6 +11,7 @@ public:
     ConstExpression(Value* val);
     ~ConstExpression();
     InstructionList* calculateToRegister(Register r) override;
+    bool validate(int line) override;
 };
 
 class AddExpression : public Expression {
@@ -20,6 +21,7 @@ public:
     AddExpression(Value* left, Value* right);
     ~AddExpression();
     InstructionList* calculateToRegister(Register r) override;
+    bool validate(int line) override;
 };
 
 class SubExpression : public Expression {
@@ -29,6 +31,7 @@ public:
     SubExpression(Value* left, Value* right);
     ~SubExpression();
     InstructionList* calculateToRegister(Register r) override;
+    bool validate(int line) override;
 };
 
 class MulExpression : public Expression {
@@ -41,6 +44,7 @@ public:
     InstructionList* generateForBothConst(Register r);
     InstructionList* generateForOneConst(Register r);
     InstructionList* generateForNoConst(Register r);
+    bool validate(int line) override;
 };
 
 class DivExpression : public Expression {
@@ -53,6 +57,7 @@ public:
     InstructionList* generateForBothConst(Register r);
     //InstructionList* generateForOneConst(Register r);
     InstructionList* generateForNoConst(Register r);
+    bool validate(int line) override;
 };
 
 class ModExpression : public Expression {
@@ -65,6 +70,7 @@ public:
     InstructionList* generateForBothConst(Register r);
     InstructionList* generateForTwoPow(Register r);
     InstructionList* generateForNoConst(Register r);
+    bool validate(int line) override;
 };
 
 #endif

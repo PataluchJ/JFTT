@@ -16,6 +16,13 @@ VarValue::~VarValue(){
     delete id;
 }
 
+bool ConstValue::isInit(){
+    return true;
+}
+bool VarValue::isInit(){
+    return this->id->isInit();
+}
+
 InstructionList* VarValue::valueToRegister(Register r){
     //Logger::log("VarValue{");
     Logger::indent += 1;

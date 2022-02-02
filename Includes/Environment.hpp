@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 
+
 struct MemVar{
     enum MemVarType{
         Normal,
@@ -28,7 +29,7 @@ class Environment {
     static std::vector<Instruction*> labels;
     static size_t nextFree;
     static size_t nextLabel;
-    static MemVar* undef;
+    
     struct ArrayDeclaration{
         std::string name;
         NumberType leftBound;
@@ -44,6 +45,7 @@ class Environment {
 
     static bool errorDeclared;
 public:
+    static MemVar* undef;
     static bool declarationsFailed;
 
     static size_t reserve(size_t size);
@@ -58,6 +60,10 @@ public:
 
     static void declareError();
     static bool compilationFailed();
+
+    static void initVar(std::string name);
+
+    static std::vector<std::string> iteratorScope;
 };
 
 #endif

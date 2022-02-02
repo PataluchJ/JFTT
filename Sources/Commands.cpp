@@ -22,6 +22,10 @@ InstructionList* Assign::generate()
 		Logger::err("Tried to assing value to iterator variable at line " + std::to_string(this->definedAtLine));
 		Environment::declareError();
 	}
+	if(!this->exp->validate(this->definedAtLine)){
+		Environment::declareError();
+	}
+	Environment::initVar(*(this->var->name));
 	auto val = this->exp->calculateToRegister(Register::h);
 	auto address = this->var->addressToRegister(Register::g);
 
@@ -151,7 +155,7 @@ For::For(Identifier* iter, Value* iStart, Value* iEnd, Commands* block, int line
 	this->setIteratorStartValue->forIteratorHelper = true;
 
 	std::string* rightBoundVarName = new std::string(*(iter->name)+"@end");
-	this->rightBoundIden = new Variable(rightBoundVarName);
+	this->rightBoundIden = new Variable(rightBoundVarName, this->definedAtLine);
 	this->rightBoundVal = new VarValue(this->rightBoundIden);
 	this->setIteratorRightBound = new Assign(this->rightBoundIden, new ConstExpression(this->iEnd),line);
 	this->setIteratorRightBound->forIteratorHelper = true;
@@ -174,9 +178,13 @@ For::~For(){
 }
 
 InstructionList* For::generate(){
+	Environment::iteratorScope.push_back(*(this->iterator->name));
+	Environment::iteratorScope.push_back(std::string(*(this->iterator->name)+"@end"));
 	auto inst = this->setIteratorStartValue->generate();
 	inst->splice(inst->end(), *(this->setIteratorRightBound->generate()));
 	inst->splice(inst->end(), *(this->loop->generate()));
+	Environment::iteratorScope.pop_back();
+	Environment::iteratorScope.pop_back();
 	return inst;
 }
 
@@ -229,7 +237,7 @@ InstructionList* Read::generate(){
 	inst->splice(inst->end(), *addressToReg);
 	inst->push_back(new Instruction(OptCode::GET));
 	inst->push_back(new Instruction(OptCode::STORE, Register::b));
-
+	Environment::initVar(*(this->id->name));
 	delete addressToReg;
 
 	return inst;
@@ -246,7 +254,10 @@ InstructionList* Write::generate(){
 	auto inst = new InstructionList;
 	
 	auto valToReg = val->valueToRegister(Register::c);
-	
+	if(!this->val->isInit()){
+		Logger::log("Using not initialized variable \"" + *(((VarValue*)this->val)->id->name) + "\" at line " + std::to_string(this->definedAtLine));
+		Environment::declareError();
+	}
 	inst->splice(inst->end(), *valToReg);
 	inst->push_back(new Instruction(OptCode::SWAP, Register::c));
 	inst->push_back(new Instruction(OptCode::PUT));

@@ -24,6 +24,74 @@ ModExpression::ModExpression(Value* left, Value* right){
     this->right = right;
 }
 
+bool ConstExpression::validate(int line){
+    if(!this->val->isInit()){
+        Logger::log("Using not initialized variable \"" + *(((VarValue*)val)->id->name) + "\" at line " + std::to_string(line));
+        return false;
+    }
+    return true;
+}
+bool AddExpression::validate(int line){
+    bool res = true;
+    if(!left->isInit()){
+        Logger::log("Using not initialized variable \"" + *(((VarValue*)left)->id->name) + "\" at line " + std::to_string(line));
+        res = false;
+    }
+    if(!right->isInit()){
+        Logger::log("Using not initialized variable \"" + *(((VarValue*)left)->id->name) + "\" at line " + std::to_string(line));
+        res = false;
+    }
+    return res;
+}
+bool SubExpression::validate(int line){
+    bool res = true;
+    if(!left->isInit()){
+        Logger::log("Using not initialized variable \"" + *(((VarValue*)left)->id->name) + "\" at line " + std::to_string(line));
+        res = false;
+    }
+    if(!right->isInit()){
+        Logger::log("Using not initialized variable \"" + *(((VarValue*)left)->id->name) + "\" at line " + std::to_string(line));
+        res = false;
+    }
+    return res;
+}
+bool MulExpression::validate(int line){
+    bool res = true;
+    if(!left->isInit()){
+        Logger::log("Using not initialized variable \"" + *(((VarValue*)left)->id->name) + "\" at line " + std::to_string(line));
+        res = false;
+    }
+    if(!right->isInit()){
+        Logger::log("Using not initialized variable \"" + *(((VarValue*)left)->id->name) + "\" at line " + std::to_string(line));
+        res = false;
+    }
+    return res;
+}
+bool DivExpression::validate(int line){
+    bool res = true;
+    if(!left->isInit()){
+        Logger::log("Using not initialized variable \"" + *(((VarValue*)left)->id->name) + "\" at line " + std::to_string(line));
+        res = false;
+    }
+    if(!right->isInit()){
+        Logger::log("Using not initialized variable \"" + *(((VarValue*)left)->id->name) + "\" at line " + std::to_string(line));
+        res = false;
+    }
+    return res;
+}
+bool ModExpression::validate(int line){
+    bool res = true;
+    if(!left->isInit()){
+        Logger::log("Using not initialized variable \"" + *(((VarValue*)left)->id->name) + "\" at line " + std::to_string(line));
+        res = false;
+    }
+    if(!right->isInit()){
+        Logger::log("Using not initialized variable \"" + *(((VarValue*)left)->id->name) + "\" at line " + std::to_string(line));
+        res = false;
+    }
+    return res;
+}
+
 ConstExpression::~ConstExpression(){
     delete val;
 }
@@ -130,7 +198,11 @@ InstructionList* MulExpression::generateForOneConst(Register target){
     auto constant = this->left->isConst() ? left : right;
     auto var = this->left->isConst() ? right : left;
     auto value = ((ConstValue*)constant)->value;
-
+    bool vNeg = false;
+    if(value < 0){
+        value = -value;
+        vNeg = true;
+    }
     Register pOne = Register::b;
     Register x = Register::c;
 
@@ -156,12 +228,17 @@ InstructionList* MulExpression::generateForOneConst(Register target){
         inst->push_back(new Instruction(OptCode::SHIFT, pOne));
         sumInAcu = false;
     }
+    
     if(target != x){
         if(!sumInAcu)
             inst->push_back(new Instruction(OptCode::SWAP, x));
         inst->push_back(new Instruction(OptCode::SWAP, target));
     }
-    
+    if(vNeg){
+        inst->push_back(new Instruction(OptCode::RESET, Register::a));
+        inst->push_back(new Instruction(OptCode::SUB, target));
+        inst->push_back(new Instruction(OptCode::SWAP, target));
+    }
     return inst;
 
 }
@@ -193,10 +270,8 @@ InstructionList* MulExpression::generateForNoConst(Register target){
 
     auto a = Register::e;
     auto b = Register::f;
-    auto c = Register::b;
-    auto d = Register::c;
+    auto sign = Register::b;
     auto r = Register::g;
-    auto h = Register::b;
     auto mOne = Register::c;
     auto pOne = Register::d;
     auto accu = Register::a;
@@ -207,27 +282,34 @@ InstructionList* MulExpression::generateForNoConst(Register target){
     
     inst->splice(inst->end(), *loadB);
     inst->splice(inst->end(), *loadA); 
-
-    /* c=a; d=b; */
+    /* sign = 1 */
+    inst->push_back(new Instruction(OptCode::RESET, sign));
+    inst->push_back(new Instruction(OptCode::INC, sign));
+    /* if !(a > 0) { a = a-c; sign = -1} */
+    inst->push_back(new Instruction(OptCode::SWAP, a));
+    inst->push_back(new Instruction(OptCode::JNEG, 3));
+    inst->push_back(new Instruction(OptCode::SWAP, a));
+    inst->push_back(new Instruction(OptCode::JUMP, 6));
+    inst->push_back(new Instruction(OptCode::SWAP, a));
+    inst->push_back(new Instruction(OptCode::SUB, a));
+    inst->push_back(new Instruction(OptCode::SWAP, a));
+    inst->push_back(new Instruction(OptCode::DEC, sign));
+    inst->push_back(new Instruction(OptCode::DEC, sign));
+    /* if !(b>0) { b = -b; sign = 0-sign}  */
+    inst->push_back(new Instruction(OptCode::SWAP, b));
+    inst->push_back(new Instruction(OptCode::JNEG, 3));
+    inst->push_back(new Instruction(OptCode::SWAP, b));
+    inst->push_back(new Instruction(OptCode::JUMP, 7));
+    inst->push_back(new Instruction(OptCode::SWAP, b));
+    inst->push_back(new Instruction(OptCode::SUB, b));
+    inst->push_back(new Instruction(OptCode::SWAP, b));
     inst->push_back(new Instruction(OptCode::RESET, accu));
-    inst->push_back(new Instruction(OptCode::ADD, a));
-    inst->push_back(new Instruction(OptCode::SWAP, c));
+    inst->push_back(new Instruction(OptCode::SUB, sign));
+    inst->push_back(new Instruction(OptCode::SWAP, sign));
+    // inst->push_back(new Instruction(OptCode::SWAP, d)); Leave d in accu 
+    /* if !(b - a < 0) { a swap b} => |a| > |b|*/
     inst->push_back(new Instruction(OptCode::RESET, accu));
     inst->push_back(new Instruction(OptCode::ADD, b));
-    inst->push_back(new Instruction(OptCode::SWAP, d));
-    /* if !(c > 0) { c = 0-c;} => c = |a| */
-    inst->push_back(new Instruction(OptCode::SWAP, c));
-    inst->push_back(new Instruction(OptCode::JPOS, 3));
-    inst->push_back(new Instruction(OptCode::RESET, accu));
-    inst->push_back(new Instruction(OptCode::SUB, a));
-    inst->push_back(new Instruction(OptCode::SWAP, c));
-    /* if !(d>0) { d = 0-d;} => d = |b| */
-    inst->push_back(new Instruction(OptCode::SWAP, d));
-    inst->push_back(new Instruction(OptCode::JPOS, 3));
-    inst->push_back(new Instruction(OptCode::RESET, accu));
-    inst->push_back(new Instruction(OptCode::SUB, b));
-    // inst->push_back(new Instruction(OptCode::SWAP, d)); Leave d in accu 
-    /* if !(d - c < 0) { a swap b} => |a| > |b|*/
     inst->push_back(new Instruction(OptCode::SUB, a));
     inst->push_back(new Instruction(OptCode::JNEG, 4));
     inst->push_back(new Instruction(OptCode::SWAP, a));
@@ -265,6 +347,13 @@ InstructionList* MulExpression::generateForNoConst(Register target){
     inst->push_back(new Instruction(OptCode::SWAP, a));
     inst->push_back(new Instruction(OptCode::JUMP, -18));
     /* end while */
+    /* Set sign*/
+    inst->push_back(new Instruction(OptCode::SWAP, sign));
+    inst->push_back(new Instruction(OptCode::JNEG, 2));
+    inst->push_back(new Instruction(OptCode::JUMP, 4));
+    inst->push_back(new Instruction(OptCode::RESET, accu));
+    inst->push_back(new Instruction(OptCode::SUB, r));
+    inst->push_back(new Instruction(OptCode::SWAP, r));
     /* Swap r with target register */
     if (r != target){
         inst->push_back(new Instruction(OptCode::SWAP, r));

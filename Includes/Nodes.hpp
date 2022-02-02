@@ -42,17 +42,20 @@ public:
     StringType name;
     virtual InstructionList* addressToRegister(Register r) = 0;
     virtual bool isIterator() = 0;
+    virtual bool isInit() = 0;
 };
 
 class Value : public Node{
 public:
     virtual bool isConst() = 0;
     virtual InstructionList* valueToRegister(Register r) = 0;
+    virtual bool isInit() = 0;
 };
 
 class Expression : public Node {
 public:
     virtual InstructionList* calculateToRegister(Register r) = 0;
+    virtual bool validate(int line) = 0;
 };
 
 class Condition : public Node {

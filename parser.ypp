@@ -75,13 +75,13 @@ command:
     | FOR pidentifier FROM value TO value DO commands ENDFOR        
         {
             Environment::declareIterator(*$2); 
-            Identifier* iter = new Variable($2);
+            Identifier* iter = new Variable($2,yylineno);
             $$ = new For(iter, $4, $6, $8,yylineno);
         }
     | FOR pidentifier FROM value DOWNTO value DO commands ENDFOR    
         {
             Environment::declareIterator(*$2); 
-            Identifier* iter = new Variable($2);
+            Identifier* iter = new Variable($2,yylineno);
             $$ = new For(iter, $4, $6, $8,yylineno, true);
         }
     | READ identifier SEM                                           {$$ = new Read($2,yylineno);}
@@ -104,15 +104,14 @@ value:
     number                  {$$ = new ConstValue($1);}
     | identifier            {$$ = new VarValue($1);}
 identifier:
-    pidentifier                                     {$$ = new Variable($1);}
-    | pidentifier BRACKETL pidentifier BRACKETR     {$$ = new ArrayByVariable($1,$3);}
-    | pidentifier BRACKETL number BRACKETR          {$$ = new ArrayByConst($1,$3);}
+    pidentifier                                     {$$ = new Variable($1,yylineno);}
+    | pidentifier BRACKETL pidentifier BRACKETR     {$$ = new ArrayByVariable($1,$3,yylineno);}
+    | pidentifier BRACKETL number BRACKETR          {$$ = new ArrayByConst($1,$3,yylineno);}
 %%
 
 int yyerror(std::string str){
     std::cout << "Error: " << str << " at line " << yylineno << "\n";
-    std::cout << "Line: " << *yylval.str << "\n"; 
-    return 0;
+    exit(-1);
 }
 
 int main(int argc, char *argv[])
@@ -124,7 +123,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 	yyparse();
-    std::cout << "Compiling " << argv[1] << " to file " << argv[2] << "\n";
+    //std::cout << "Compiling " << argv[1] << " to file " << argv[2] << "\n";
     Environment::finalizeDeclarations();
     if(Environment::declarationsFailed){
         std::cout << "Unable to declare all variables. Compilation failed.\n";
